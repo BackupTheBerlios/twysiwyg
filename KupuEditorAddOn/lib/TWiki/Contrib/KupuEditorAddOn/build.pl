@@ -42,11 +42,6 @@ use TWiki::Contrib::Build;
     chdir("$basedir") || die "can't cd to $basedir - $!";
     print `find . -type f | grep -v CVS | egrep -v '~\$' | egrep "([kK]upu|LICENSE*)" > $basedir/MANIFEST`;
   }
-  
-  sub filter {
-    my ($this, $from, $to) = @_;
-    # Nothing
-  }
 
 }
 
