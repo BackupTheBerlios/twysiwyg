@@ -5,13 +5,9 @@ package Service::Trace;
 
 use strict;
 
-use vars qw( $lock );
-
-# Lock file
-$lock = "$Service::traceFile.lock";
-
 sub log {
   my ( $arg ) = @_;
+  my $lock = $Service::traceFile.".lock";
   my $date = localtime( time() );
   return if ( ! $Service::traceMode );
   &Service::FLock::lock( $lock );

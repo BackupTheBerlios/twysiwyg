@@ -5,15 +5,11 @@ package Service::AdminLock;
 
 use strict;
 
-use vars qw( $lock );
-
-# Admin lock Filename Lock
-$lock = "$Service::adminLockFile.lock";
-
 # Retrieve locktime and lockuser in administrative lock
 sub checkAdminLock {
   # Let procedure unlock ?
   my ( $dontUnlock ) = @_;
+  my $lock = $Service::adminLockFile.".lock";
   my ( $lockedKey, $lockedTime );
   my $failed;
   # Open it and retrieve values
@@ -36,6 +32,7 @@ sub checkAdminLock {
 # Create (or refresh) administrative lock
 sub doLock {
   my ( $key ) = @_;
+  my $lock = $Service::adminLockFile.".lock";
   my $date = time();
   my $failed = 1;
   my ( $checkCode, $lockedKey, $lockedTime ) = &checkAdminLock( 1 );
@@ -53,6 +50,7 @@ sub doLock {
 # Unlock admin lock
 sub doUnlock {
   my ( $key ) = @_;
+  my $lock = $Service::adminLockFile.".lock";
   my $failed = 1;
   my ( $checkCode, $lockedKey, $lockedTime ) = checkAdminLock( 1 );
   if ( $checkCode && ( $lockedKey eq $key ) ) {

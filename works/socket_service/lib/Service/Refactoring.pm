@@ -307,14 +307,14 @@ sub mergeTopics {
     return ( 2, &Service::Connection::getLogin($lockedKey) );
   }
   if (( $webTarget eq $webFrom ) && ( $topicTarget eq $topicFrom )) { &Service::Trace::log( "Merge operation failed : topics are the same" );return 5; }
+  # Initialize topic
+  &Service::Connection::initialize( $login, $webTarget, $topicTarget );  
   # Retrieve Auxiliary Topic's content
   my ( $metaFrom, $textFrom ) = &TWiki::Store::readTopic( $webFrom, $topicFrom );
   # Retrieve Target's content
   my ( $metaTarget, $textTarget ) = &TWiki::Store::readTopic( $webTarget, $topicTarget );
   # Concat
   $textTarget .= $textFrom;
-  # Initialize topic
-  &Service::Connection::initialize( $login, $webTarget, $topicTarget );
   # Check if topic is locked
   if ( ! $doBreakLock ) {
     my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $webTarget, $topicTarget );

@@ -67,28 +67,6 @@ sub isUnlocked {
 	return 1;
 }
 
-# Test permissions on topics and get content
-# Others tests must have been done before (like topic existence)
-sub _testAndGetTopic {
-	my ( $web, $topic, $login, $type ) = @_;
-	# Normalize web & topic name
-	( $web, $topic ) = &TWiki::Store::normalizeWebTopicName( $web, $topic );
-	# Test topic existence
-	return -1 if ( ! &TWiki::Store::topicExists( $web, $topic ) );
-	# Get topic
-	my ( $meta, $content ) = &TWiki::Store::readTopic( $web, $topic );
-	if ( $type eq 'view' ) {
-		return 0 if ( ! &TWiki::Access::checkAccessPermission( "view", $login, $content, $topic, $web ) );
-	} else {
-		# Test Authorizations
-		return 0 if ( ! &TWiki::Access::checkAccessPermission( "change", $login, $content, $topic, $web ) );
-		if ( $type eq 'rename' ) {
-			return 0 if ( ! &TWiki::Access::checkAccessPermission( "rename", $login, $content, $topic, $web ) );
-		}
-	}
-	return ( 1, $meta, $content );
-}
-
 # Get Child Topics of the one passed in parameter
 sub getChildTopics {
   my ( $web, $topic ) = @_;
@@ -99,7 +77,7 @@ sub getChildTopics {
 	return -1 if ( ( $topic ) && ! &TWiki::Store::topicExists( $web, $topic ) );
 	# Retrieve topics
 	my @topicList = ();
-  if ( $topic eq "" ) {
+  if ( ( ! $topic ) || ( $topic eq "" ) ) {
     # Search topics with no parents in this web
     @topicList = &_grepTopics( "%META:TOPICPARENT", "$TWiki::dataDir\/$web\/*.txt", 1 );
     
@@ -138,15 +116,15 @@ sub getTopicProperties {
   # Retrieve login
 	my $login = &Service::Connection::getLogin( $key );
 	return 0 if ( ! $login );
-	$topicName = $TWiki::mainTopicname if ( $topicName eq '' );
+	$topicName = $TWiki::mainTopicname if ( ( ! $topicName ) || ( $topicName eq '' ) );
 	# Test topic existence
 	( $web, $topicName ) = &TWiki::Store::normalizeWebTopicName( $web, $topicName );
 	return -1 if ( ! &TWiki::Store::topicExists( $web, $topicName ) );
   # Initialize
 	&Service::Connection::initialize( $login, $web, $topicName );
 	# Check permissions
-  my ( $code, $meta, $content ) = &_testAndGetTopic( $web, $topicName, $login, 'view' );
-  my $view_perms = $code;
+  my ( $meta, $content ) = &TWiki::Store::readTopic( $web, $topicName );
+  my $view_perms = &TWiki::Access::checkAccessPermission( "view", $login, $content, $topicName, $web );
   my $change_perms = &TWiki::Access::checkAccessPermission( "change", $login, $content, $topicName, $web );
   my $rename_perms = &TWiki::Access::checkAccessPermission( "rename", $login, $content, $topicName, $web );
   # Check if topic is locked

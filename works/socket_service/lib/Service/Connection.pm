@@ -5,20 +5,16 @@ package Service::Connection;
 
 use strict;
 
-use vars qw( $lock );
-
 eval "use TWiki::Store::$TWiki::storeTopicImpl;";
 
 if ( $TWiki::OS eq "WINDOWS" ) {
-	require MIME::Base64;
-	require Digest::SHA1;
+  require MIME::Base64;
+  require Digest::SHA1;
 }
-
-# Lock file
-$lock = "$Service::clientsFile.lock";
 
 sub load {
 	my $clients_ref;
+	my $lock = $Service::clientsFile.".lock";
 	my ( $line, $key, $usage, $login, $cnx, $echo, $failed );
 	&Service::FLock::lock( $lock );
 	# Read values and save them in hash
@@ -51,6 +47,7 @@ sub load {
 
 sub save {
 	my $clients_ref = shift;
+	my $lock = $Service::clientsFile.".lock";
 	my ( $key, $usage, $login, $cnx, $echo, $failed );
 	&Service::FLock::lock( $lock );
 	# Save values in text file
@@ -221,8 +218,6 @@ sub initialize {
 	# TWiki init
 	&TWiki::basicInitialize();
 	&TWiki::Store::initialize();
-	# Access control init
-	&TWiki::Access::initializeAccess();
 	if ( $web && $topic ) {
 	   # Initialize web name
 	   $TWiki::webName = $web;
@@ -230,7 +225,10 @@ sub initialize {
 	   $TWiki::topicName = $topic;
 	}
 	# Initialize TWiki userName var
-	&TWiki::initializeRemoteUser( &TWiki::userToWikiName( $login ) );
+	$TWiki::wikiUserName = &TWiki::userToWikiName( $login );
+	$TWiki::userName = &TWiki::initializeRemoteUser( $login );
+	# Access control init
+	&TWiki::Access::initializeAccess();
 	return $TWiki::userName;
 }
 

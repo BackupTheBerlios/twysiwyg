@@ -6,13 +6,9 @@ package Service::Locks;
 use strict;
 use File::stat;
 
-use vars qw( $lock );
-
-# Lock file
-$lock = "$Service::locksFile.lock";
-
 sub load {
 	my $locks_ref;
+	my $lock = $Service::locksFile.".lock";
 	my ( $line, $key, $saved_date, $filename, $effective_date, $failed );
 	&Service::FLock::lock( $lock );
 	open( FILE, "<$Service::locksFile" ) or $failed = 1;
@@ -37,6 +33,7 @@ sub load {
 
 sub save {
 	my $locks_ref = shift;
+	my $lock = $Service::locksFile.".lock";
 	my $failed;
 	&Service::FLock::lock( $lock );
 	# Save values in text file
