@@ -116,7 +116,6 @@ sub translate {
           background-color:#DDFFDD;
           color:green;
         }
-        a.internal_link { background-color:#DDDDFF;border:1px solid #4444FF;padding-left:2px;padding-right:2px; }
       </style>
     </head>
     <body>
