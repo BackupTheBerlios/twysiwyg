@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupueditor.js,v 1.3 2004/12/18 17:39:44 romano Exp $
+// $Id: kupueditor.js,v 1.4 2005/01/09 15:13:18 romano Exp $
 
 /*****************************************************************************
  * 
@@ -19,8 +19,7 @@
  * - 2004-10-04 - Initialization of a new handler completeStateHandler in 
  *                KupuEditor._initializeEventHandlers
  * - 2004-10-04 - completeStateHandler and completeState functions
- * - 2004-12-18 - KupuEditor prototype
- * - 2004-10-24 - saveDocument source retrieving for translation   
+ * - 2004-12-18 - KupuEditor prototype   
  *  
  *****************************************************************************/
 
@@ -233,20 +232,11 @@ function KupuEditor(document, config, logger, html2twiki, twiki2html) {
         // set the window status so people can see we're actually saving
         window.status= "Please wait while saving document...";
 
-        /* TWiki KupuEditorAddOn : different save action */
-        // pass the content through the filters
-        //this.logMessage("Starting HTML cleanup");
-        //var transform = this._filterContent(this.getInnerDocument().documentElement);
-        // serialize to a string
-        //var contents = this._serializeOutputToString(transform);
-        var contents;
         // pass the content through the filters
         this.logMessage("Starting HTML cleanup");
         var transform = this._filterContent(this.getInnerDocument().documentElement);
-        this.getInnerDocument().documentElement.getElementsByTagName("body")[0].innerHTML = transform.getElementsByTagName("body")[0].xml;
-        // translation
-        contents = this.html2twiki.translate(this.getInnerDocument().documentElement);
-        /* -- End of modifications */
+        // serialize to a string
+        var contents = this._serializeOutputToString(transform);
         
         this.logMessage("Cleanup done, sending document to server");
         var request = Sarissa.getXmlHttpRequest();
