@@ -45,20 +45,11 @@ my $theRemoteUser = $query->remote_user();
 my $theTopic = $query->param( 'topic' );
 my $theUrl = $query->url;       
      
-# Retrieve topic
+# Retrieve and translate topic
 my $topicContent = "";           
 if ($ENV{'REQUEST_METHOD'} eq "PUT") {
-  my $clength = $ENV{'CONTENT_LENGTH'};
-  my $toread = $clength;
-  my $data;
-  my $nread = 0;
-  while ($toread > 0)
-  {
-    $nread = read(STDIN, $data, $clength);
-    last if !defined($nread);
-    $toread -= $nread;
-    $topicContent = $data;
-  }
+  # STDIN contains text to translate
+  $topicContent = `/usr/bin/perl HtmlToTwiki.pl`;
 }
 
 # Translation
