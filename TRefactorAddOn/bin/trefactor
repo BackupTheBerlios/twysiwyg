@@ -1,0 +1,337 @@
+#!/usr/bin/perl -w
+#
+# TRefactorAddOn CGI-Based Request Dispatcher 
+#
+# TWiki TRefactorAddOn add-on for TWiki
+# Copyright (C) 2004 Maxime Lamure, Mario Di Miceli, Damien Mandrioli & Romain Raugi
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# $Id: trefactor,v 1.1 2004/11/21 10:48:46 romano Exp $
+
+BEGIN { 
+	unshift @INC, '.'; require 'setlib.cfg';
+}
+
+use strict;
+use TWiki::Contrib::TRefactorAddOn;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
+
+my $query = new CGI;
+my $call = "";
+$call = $query->param('method');
+
+my $response = "";
+my $length = 0;
+
+if ( $call ne "" ) {
+	
+	# Service invokation test & dispatch
+	my $content_type = "text/xml";
+	$response = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>";
+	
+	if ( $call eq "connect" ) {
+		# Connection service
+		my ( $code, $timeout ) = &TWiki::Contrib::TRefactorAddOn::Connection::connect( $query->param('usage'), 
+                                                            $query->param('login'), 
+                                                            $query->param('pass') );
+		my $messages = { -1 => 'Empty login', 
+                     -2 => 'Maximum number of connections reached', 
+                     -3 => 'Authentication failed' };
+		if ( $code >= -3 && $code <= -1 ) {
+      $response .= &_make_message( $code, $messages->{$code} );
+    }
+		else {
+      $response .= &_make_connectioninfo( $code, $timeout );
+    }
+	
+  } elsif ( $call eq "disconnect" ) {
+    # Disconnect servce
+		my $code = &TWiki::Contrib::TRefactorAddOn::Connection::disconnect( $query->param('key') );
+		my $messages = { 0 => 'Disconnection failed', 
+                     1 => 'Disconnection OK' };
+		$response .= &_make_message( $code, $messages->{$code} );
+	
+  } elsif ( $call eq "ping" ) {
+    # Ping service
+		my $code = &TWiki::Contrib::TRefactorAddOn::Connection::ping( $query->param('key') );
+		my $messages = { 0 => 'Ping failed', 
+                     1 => 'Ping OK' };
+		$response = &_make_message( $code, $messages->{$code} );
+		
+	} elsif ( $call eq "getUsers" ) {
+	  # GetUsers service
+		$response .= &_make_users( &TWiki::Contrib::TRefactorAddOn::Connection::getUsers() );
+	
+  } elsif ( $call eq "getTopicProperties" ) {
+    my $web = $query->param('web');
+    my $topic = $query->param('topic');
+		my ( $code, $text ) = &TWiki::Contrib::TRefactorAddOn::Topics::getTopicProperties( $query->param('key'), 
+                                                                $web, 
+                                                                $topic );
+		if ( $code == 0 ) {
+      $response .= &_make_message( $code, 'Connection required to invoke service' );
+    } elsif ( $code == -1 ) {
+      $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" );
+    }
+		else {
+      $response .= &_make_topic_properties( $text );
+    }
+	
+  } elsif ( $call eq "lockTopic" ) {
+    # LockTopic service
+    my $web = $query->param('web');
+    my $topic = $query->param('topic');
+		my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Topics::lockTopic( $query->param('key'), 
+                                                       $web,
+                                                       $topic, 
+                                                       $query->param('doUnlock') );
+                                                       
+		if ( $code == -2 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == -1 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
+		elsif ( $code == 0 ) { $response .= &_make_message( $code, "Operation failed, lock already put by $info" ); }
+		else { $response .= &_make_message( $code, "Operation succeded: $info" ); }
+	
+  } elsif ( $call eq "getChildTopics" ) {
+    # Get children of a topic
+	  my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+		my ( $code, @list ) = &TWiki::Contrib::TRefactorAddOn::Topics::getChildTopics( $web, $topic );
+		my $messages = { -2 => "Web $web doesn't exists", 
+                     -1 => "Topic $web.$topic doesn't exists"};
+		if ( $code >= -2 && $code < 0 ) {
+      $response .= &_make_message( $code, $messages->{$code} );
+    }
+		else { $response .= &_make_topics_list( @list ); }
+
+	} elsif ( $call eq "getWebs" ) {
+	  # Get webs
+	  my $web = $query->param('web');
+	  my @list = &TWiki::Contrib::TRefactorAddOn::Topics::getWebs( $web );
+	  $response .= &_make_webs_list( @list );
+
+	} elsif ( $call eq "setAdminLock" ) {
+	  # Set administrative lock
+		my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Connection::setAdminLock( $query->param('key'), 
+                                                              $query->param('doUnlock') );
+		
+		if ( $code == -2 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == -1 ) { $response .= &_make_message( $code, "Admin status is required to control administrative lock" ); }
+		elsif ( $code == 0 ) { $response .= &_make_message( $code, "Operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		else { $response .= &_make_message( $code, "Operation succeded, administrative lock has been ".( $query->param('doUnlock') ? "released" : "put" ) ); }
+
+	} elsif ( $call eq "renameTopic" ) {
+	  # Rename topic
+	  my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+	  my $name = $query->param('name');
+	  my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Refactoring::renameTopic( $query->param('key'), 
+                                                              $web, 
+                                                              $topic,
+                                                              $name, 
+                                                              $query->param('doUpdate'), 
+                                                              $query->param('doBreakLock') );
+		
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Rename operation succeeded: $info" ); }
+		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Rename operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Target topic already exists" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "New name isn't a WikiWord" ); }
+		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Unable to put lock on $web.$topic (already put by $info)" ); }
+		else { $response .= &_make_message( $code, "Rename error (code $info)" ); }
+
+	} elsif ( $call eq "moveTopic" ) {
+	  # Move topic
+	  my $srcWeb = $query->param('srcWeb');
+	  my $topic = $query->param('topic');
+	  my $dstWeb = $query->param('dstWeb');
+	  my $parent = $query->param('parent');
+	  my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Refactoring::moveTopic( $query->param('key'), 
+                                                            $srcWeb, 
+                                                            $topic,
+                                                            $dstWeb, 
+                                                            $parent, 
+                                                            $query->param('doUpdate'), 
+                                                            $query->param('doBreakLock') );
+                                                            
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Move operation succeeded: $info" ); }
+		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Move operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Source topic $srcWeb.$topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "New parent topic $dstWeb.$parent doesn't exist" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Unable to put lock (already put by $info)" ); }
+		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Target topic $dstWeb.$topic already exists" ); }
+		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Move error (code $info)" ); }
+		else { $response .= &_make_message( $code, "Parent change error (code $info)" ); }
+          
+  } elsif ( $call eq "removeTopic" ) {
+    # Remove topic
+    my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+	  my $trashName = $query->param('trashName');
+	  my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Refactoring::removeTopic( $query->param('key'),
+	                                                            $web, 
+                                                              $topic,
+                                                              $trashName, 
+                                                              $query->param('doBreakLock') );               
+
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Remove operation succeeded: $info" ); }
+		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Remove operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Unable to put lock (already put by $info)" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Trash name isn't a WikiWord" ); }
+		else { $response .= &_make_message( $code, "Error when moving to Trash web (code $info)" ); }
+		
+  } elsif ( $call eq "mergeTopics" ) {
+    # Merge topics
+    my $webTarget = $query->param('webTarget');
+	  my $topicTarget = $query->param('topicTarget');
+	  my $webFrom = $query->param('webFrom');
+	  my $topicFrom = $query->param('topicFrom');
+	  my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Refactoring::mergeTopics( $query->param('key'),
+	                                                            $webTarget, 
+	                                                            $topicTarget, 
+	                                                            $webFrom, 
+	                                                            $topicFrom, 
+	                                                            $query->param('doAttachments'), 
+	                                                            $query->param('doBreakLock'), 
+	                                                            $query->param('doRemove'), 
+	                                                            $query->param('dontNotify') );
+
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Merge operation succeeded: $info" ); }
+		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Merge operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Target topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Auxiliary topic $webFrom.$topicFrom doesn't exist" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Unable to merge same topics" ); }
+		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Unable to put lock on target topic (already put by $info)" ); }
+		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Error when saving target topic (code $info)" ); }
+		elsif ( $code == 8 ) { $response .= &_make_message( $code, "Error when moving auxiliary topic to Trash web (code $info)" ); }
+		else { $response .= &_make_message( $code, "Error when copying attachments from auxiliary topic to target topic (code $info)" ); }
+		
+  } elsif ( $call eq "copyTopic" ) {
+    # Copy topic
+    my $srcWeb = $query->param('srcWeb');
+	  my $topic = $query->param('topic');    
+    my $dstWeb = $query->param('dstWeb');
+    my $newName = $query->param('newName');  
+    my $parent = $query->param('parent');      
+    my ( $code, $info ) = &TWiki::Contrib::TRefactorAddOn::Refactoring::copyTopic( $query->param('key'), 
+                                                            $srcWeb, 
+                                                            $topic, 
+                                                            $dstWeb, 
+                                                            $newName, 
+                                                            $parent, 
+                                                            $query->param('doAttachments'), 
+                                                            $query->param('doBreakLock') );
+
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Copy operation succeeded: $info" ); }
+		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Copy operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $srcWeb.$topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Destination topic already exists" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Parent topic $dstWeb.$parent doesn't exist" ); }
+		elsif ( $code == 6 ) { $response .= &_make_message( $code, "New name isn't a WikiWord" ); }
+		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Unable to put lock on new topic (already put by $info)" ); }
+		elsif ( $code == 8 ) { $response .= &_make_message( $code, "Error when saving new topic (code $info)" ); }
+		else { $response .= &_make_message( $code, "Error when copying attachments (code $info)" ); }
+                                            
+	} else {
+		$content_type = "text/html";
+		$response = "<h1>Unknown service invoked</h1>";
+	}
+	my $nb_lines = $response =~ tr/\n//;
+	$length = length( $response ) + $nb_lines;
+	print "Status: 200 OK\nContent-type: $content_type\nContent-length: $length\n\n$response";
+}
+
+# Create XML message
+sub _make_message {
+	my ( $code, $content ) = @_;
+	return "<message><code>$code</code><content>$content</content></message>";
+}
+
+# Create XML connection information
+sub _make_connectioninfo {
+	my ( $key, $timeout ) = @_;
+	return "<connection><key>$key</key><timeout>$timeout</timeout></connection>";
+}
+
+# Create XML users representation
+sub _make_users {
+	my ( $users_ref ) = @_;
+	my ( $key, $usage, $login, $cnx );
+	my $response = "<users>";
+	for $key ( sort keys %$users_ref ) {
+		$usage = $users_ref->{$key}{'USAGE'};
+		$login = $users_ref->{$key}{'LOGIN'};
+		$cnx = &_make_date( gmtime( $users_ref->{$key}{'CNX'} ) );
+		$response .= "<user><usage>$usage</usage><login>$login</login><connexion>$cnx</connexion></user>";
+	}
+	$response .= "</users>";
+	return $response;
+}
+
+# Create XML listing of topics
+sub _make_topics_list {
+	my ( @list ) = @_;
+	my $response = "<topics>";
+	foreach ( @list ) {
+		$response .= "<topic>$_</topic>";
+	}
+	$response .= "</topics>";
+}
+
+# Create XML listing of webs
+sub _make_webs_list {
+	my ( @list ) = @_;
+	my $response = "<webs>";
+	foreach ( @list ) {
+		$response .= "<web>$_</web>";
+	}
+	$response .= "</webs>";
+}
+
+# Create XML topic properties representation
+sub _make_topic_properties {
+	my ( $topic ) = @_;
+	my $web = $topic->{'web'};
+	my $name = $topic->{'name'};
+	my $mainTopic = $topic->{'mainTopic'};
+	my $rperms = $topic->{'rename_permissions'};
+	my $cperms = $topic->{'change_permissions'};
+	my $vperms = $topic->{'view_permissions'};
+	my $locked = $topic->{'locked'} ? $topic->{'locked'} : "";
+	my $author = $topic->{'author'};
+	my $c_date = &_make_date( gmtime ($topic->{'cDate'} ) );
+	my $m_date = &_make_date( gmtime( $topic->{'mDate'} ) );
+	my $format = $topic->{'format'};
+	my $version = $topic->{'version'};
+	my @attachments = @{$topic->{'attachments'}};
+	my $attachmentsNames = "";
+	foreach my $attachment ( @attachments ) {
+    $attachmentsNames .= "<attachment>".$attachment->{"name"}."</attachment>";
+  }
+	my $response = "<topicProperties>";
+	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version><attachments>$attachmentsNames</attachments>";
+	$response .= "</topicProperties>";
+	return $response;
+}
+
+# Format dates
+sub _make_date {
+  my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) = @_;
+  # Format 0X
+  return ( $year + 1900 )."-".( $mon + 1 )."-".$mday."T".$hour.":".$min.":".$sec."Z";
+}

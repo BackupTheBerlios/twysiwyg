@@ -1,0 +1,13 @@
+./bin/trefactor
+./data/TRefactorAddOn.cfg
+./data/TWiki/TRefactorAddOn.txt
+./lib/TWiki/Contrib/TRefactorAddOn/AdminLock.pm
+./lib/TWiki/Contrib/TRefactorAddOn/build.pl
+./lib/TWiki/Contrib/TRefactorAddOn/Connection.pm
+./lib/TWiki/Contrib/TRefactorAddOn/FLock.pm
+./lib/TWiki/Contrib/TRefactorAddOn/Locks.pm
+./lib/TWiki/Contrib/TRefactorAddOn/Refactoring.pm
+./lib/TWiki/Contrib/TRefactorAddOn/Topics.pm
+./lib/TWiki/Contrib/TRefactorAddOn/Trace.pm
+./lib/TWiki/Contrib/TRefactorAddOn.pm
+./TRefactorAddOn/doc/LICENSE.txt
