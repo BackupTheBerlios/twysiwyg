@@ -159,7 +159,7 @@ bin/kupuedit
 Ensure first line of <TWIKI_ROOT_DIR>/bin/kupu_html2twiki_edit script doesn't contain -T option,
 taint mode has to be disabled for this script.
 
-In kupu_html2twiki_edit line 32 :
+In kupu_html2twiki_edit line 29 and kupu_html2twiki line 52 :
 <verbatim>
 $content = `/usr/bin/perl HtmlToTwiki.pl`;
 </verbatim>
