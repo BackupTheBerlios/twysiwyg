@@ -13,8 +13,8 @@ use Service::Topics;
 use Service::AdminLock;
 use Service::Refactoring;
 
-use vars qw($key_range $timeout $max_connections $clients_file
-            $locks_file $trace_file $trace_mode $admin_lock_file
+use vars qw($keyRange $timeout $maxConnections $clientsFile
+            $locksFile $traceFile $traceMode $adminLockFile
             );
 
 BEGIN {

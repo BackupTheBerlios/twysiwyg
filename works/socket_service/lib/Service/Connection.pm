@@ -5,7 +5,7 @@ package Service::Connection;
 
 use strict;
 
-use vars qw($lock);
+use vars qw( $lock );
 
 eval "use TWiki::Store::$TWiki::storeTopicImpl;";
 
@@ -15,22 +15,22 @@ if ( $TWiki::OS eq "WINDOWS" ) {
 }
 
 # Lock file
-$lock = "$Service::clients_file.lock";
+$lock = "$Service::clientsFile.lock";
 
 sub load {
 	my $clients_ref;
 	my ( $line, $key, $usage, $login, $cnx, $echo, $failed );
 	&Service::FLock::lock( $lock );
 	# Read values and save them in hash
-	open(FILE, "<$Service::clients_file") or $failed = 1;
+	open( FILE, "<$Service::clientsFile" ) or $failed = 1;
 	if ( ! $failed ) {
     my $date = time();
-    while($line = <FILE>) {
-      ($key, $usage, $login, $cnx, $echo) = split/ /, $line, 5;
+    while( $line = <FILE> ) {
+      ( $key, $usage, $login, $cnx, $echo ) = split/ /, $line, 5;
       # Delete last separator
       chomp $echo;
       # Check Timeouts
-      if (($date - $echo) < $Service::timeout) {
+      if ( ( $date - $echo ) < $Service::timeout ) {
         $clients_ref->{$key}{'LOGIN'} = $login;
         $clients_ref->{$key}{'USAGE'} = $usage;
         $clients_ref->{$key}{'CNX'} = $cnx;
@@ -54,7 +54,7 @@ sub save {
 	my ( $key, $usage, $login, $cnx, $echo, $failed );
 	&Service::FLock::lock( $lock );
 	# Save values in text file
-	open(FILE, ">$Service::clients_file") or $failed = 1;
+	open( FILE, ">$Service::clientsFile" ) or $failed = 1;
  	if ( ! $failed ) {
 		for $key ( sort keys %$clients_ref ) {
       $usage = $clients_ref->{$key}{'USAGE'};
@@ -63,7 +63,7 @@ sub save {
       $echo = $clients_ref->{$key}{'ECHO'};
       print FILE "$key $usage $login $cnx $echo\n";
     }
-    close(FILE);
+    close( FILE );
   }
   &Service::FLock::unlock( $lock );
 }
@@ -92,15 +92,14 @@ sub connect {
 	my $clients = load();
 	# No possible connections now (not enough keys) : extreme case
 	my @keys = keys %$clients;
-	my $max_connections_reached = ( $#keys == ( $Service::max_connections - 1 ) );
-	if ( $max_connections_reached ) {
+	if ( $#keys == ( $Service::maxConnections - 1 ) ) {
 		&Service::Trace::log("Connection failed, maximum number of connections reached");
 		return -2;
 	}
 	# Generate non-existing key
-   	my $key = int( rand( $Service::key_range ) ) + 1;
+   	my $key = int( rand( $Service::keyRange ) ) + 1;
    	while ( exists $$clients{$key} ) {
-		$key = int( rand( $Service::key_range ) ) + 1;
+		$key = int( rand( $Service::keyRange ) ) + 1;
 	}
 	# New user
 	$clients->{$key}{'LOGIN'} = "$login";
@@ -123,11 +122,11 @@ sub disconnect {
 		my $login = $clients->{$key}{'LOGIN'};
 		# Delete entry
 		delete $clients->{$key};
-		&save($clients);
+		&save( $clients );
 		# Unlock all put locks
 		&locks( $key, $login, 1 );
 		# Unlock admin lock
-        &Service::AdminLock::doUnlock( $key );
+    &Service::AdminLock::doUnlock( $key );
 		&Service::Trace::log( "Disconnection from $key OK" );
 		return 1;
 	}
@@ -140,11 +139,11 @@ sub ping {
 	&Service::Trace::log( "Ping from $key" );
 	# Retrieve clients from data source
 	my $clients = load();
-	if (exists $clients->{$key}) {
+	if ( exists $clients->{$key} ) {
 		my $login = $clients->{$key}{'LOGIN'};
 		my $echo = time();
 		$clients->{$key}{'ECHO'} = "$echo";
-		&save($clients);
+		&save( $clients );
 		# Actualize all put locks
 		&locks( $key, $login );
 		my ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::checkAdminLock();
@@ -165,13 +164,14 @@ sub getLogin() {
 	my ( $key ) = @_;
 	# Retrieve clients from data source
 	my $clients = load();
-	if (exists $clients->{$key}) {
+	if ( exists $clients->{$key} ) {
 		return $clients->{$key}{'LOGIN'};
 	}
 	return undef;
 }
 
 # Authentication
+# Compatible Cairo + Bejing
 sub check {
 	my ( $login, $pass ) = @_;
 	# Reading passwords file
@@ -244,7 +244,7 @@ sub setAdminLock {
   # TWiki init
 	&initialize( $login );
   # Admin Group ?
-  #return -1 if ( ! TWiki::Access::userIsInGroup( &TWiki::userToWikiName( $login ), $TWiki::superAdminGroup ) );
+  return -1 if ( ! TWiki::Access::userIsInGroup( &TWiki::userToWikiName( $login ), $TWiki::superAdminGroup ) );
   # Check state wanted
   if ( ! $doUnlock ) {
     ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::doLock( $key );

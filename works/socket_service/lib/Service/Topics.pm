@@ -69,7 +69,7 @@ sub isUnlocked {
 
 # Test permissions on topics and get content
 # Others tests must have been done before (like topic existence)
-sub testAndGetTopic {
+sub _testAndGetTopic {
 	my ( $web, $topic, $login, $type ) = @_;
 	# Normalize web & topic name
 	( $web, $topic ) = &TWiki::Store::normalizeWebTopicName( $web, $topic );
@@ -101,21 +101,21 @@ sub getChildTopics {
 	my @topicList = ();
   if ( $topic eq "" ) {
     # Search topics with no parents in this web
-    @topicList = &grepTopics( "%META:TOPICPARENT", "$TWiki::dataDir\/$web\/*.txt", 1 );
+    @topicList = &_grepTopics( "%META:TOPICPARENT", "$TWiki::dataDir\/$web\/*.txt", 1 );
     
-    my @topicList2 = &grepTopics( "%META:TOPICPARENT\\\{name=\\\"($web\\\.)?$TWiki::mainTopicname\\\"\\\}%", 
+    my @topicList2 = &_grepTopics( "%META:TOPICPARENT\\\{name=\\\"($web\\\.)?$TWiki::mainTopicname\\\"\\\}%", 
                                  "$TWiki::dataDir\/$web\/*.txt" );
     @topicList = ( @topicList, @topicList2 );                    
   } else {
     # Search in this web
-    @topicList = &grepTopics( "%META:TOPICPARENT\\\{name=\\\"($web\\\.)?$topic\\\"\\\}%", 
+    @topicList = &_grepTopics( "%META:TOPICPARENT\\\{name=\\\"($web\\\.)?$topic\\\"\\\}%", 
                               "$TWiki::dataDir\/$web\/*.txt" );
   }
   return ( 0, @topicList );
 }
 
 # Grep regexp on topics
-sub grepTopics {
+sub _grepTopics {
   my ( $pattern, $files, $invert ) = @_;
   my $cmd = "$TWiki::egrepCmd -l -- $TWiki::cmdQuote$pattern$TWiki::cmdQuote $files";
   $cmd = "$TWiki::egrepCmd -l -L -- $TWiki::cmdQuote$pattern$TWiki::cmdQuote $files" if ( $invert );
@@ -138,10 +138,14 @@ sub getTopicProperties {
   # Retrieve login
 	my $login = &Service::Connection::getLogin( $key );
 	return 0 if ( ! $login );
+	$topicName = $TWiki::mainTopicname if ( $topicName eq '' );
+	# Test topic existence
+	( $web, $topicName ) = &TWiki::Store::normalizeWebTopicName( $web, $topicName );
+	return -1 if ( ! &TWiki::Store::topicExists( $web, $topicName ) );
   # Initialize
 	&Service::Connection::initialize( $login, $web, $topicName );
 	# Check permissions
-  my ( $code, $meta, $content ) = &testAndGetTopic( $web, $topicName, $login, 'view' );
+  my ( $code, $meta, $content ) = &_testAndGetTopic( $web, $topicName, $login, 'view' );
   my $view_perms = $code;
   my $change_perms = &TWiki::Access::checkAccessPermission( "change", $login, $content, $topicName, $web );
   my $rename_perms = &TWiki::Access::checkAccessPermission( "rename", $login, $content, $topicName, $web );
@@ -167,6 +171,8 @@ sub getTopicProperties {
 	$topic->{'mDate'} = localtime( $mtime );
 	$topic->{'format'} = $topicinfo{"format"};
 	$topic->{'version'} = $topicinfo{"version"};
+	my @attachments = $meta->find( "FILEATTACHMENT" );
+  $topic->{'attachments'} = [@attachments];
 	return ( 1, $topic );
 }
 

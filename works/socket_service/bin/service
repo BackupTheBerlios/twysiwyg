@@ -11,113 +11,230 @@ use CGI::Carp qw( fatalsToBrowser );
 use CGI;
 
 my $query = new CGI;
-my $call = $query->param('method');
+my $call = "";
+$call = $query->param('method');
 
-my $response;
+my $response = "";
 my $length = 0;
-if ( $call eq "" ) {
-	# Print Trace
-	my $trace = "";
-	open( TRACE, "<$Service::trace_file" ) or $trace = "Failed to open trace file : $Service::trace_file";
-	if ( ! $trace ) {
-		while ( my $line = <TRACE> ) {
-			chomp $line;
-			my ( $date, $log ) = split/>>/, $line;
-			$trace .= "<font color='green' style='font-style:italic;'>$date</font> : $log<br/>";
-		}
-		close( TRACE );
-	}
-	# Header
-	$response = "<h1>Service Log :</h1>$trace";
-	my $nb_lines = $response =~ tr/\n//;
-	$length += length( $response ) + $nb_lines;
-	print "Status: 200 OK\nContent-type: text/html\nContent-length: $length\n\n$response";
-	
-} else {
 
+if ( $call ne "" ) {
+	
+	# TWiki init
+	&TWiki::basicInitialize();
+	
 	# Service invokation test & dispatch
 	my $content_type = "text/xml";
-	$response = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>";
+	$response = "<?xml version=\"1.0\" encoding=\"$TWiki::siteCharset\"?>";
+	
 	if ( $call eq "connect" ) {
 		# Connection service
-		my ( $code, $timeout ) = &Service::Connection::connect( $query->param('usage'), $query->param('login'), $query->param('pass') );
-		my $messages = { -1 => 'Empty login', -2 => 'Maximum number of connections reached', 
-						 -3 => 'Authentication failed' };
-		if ( $code >= -3 && $code <= -1 ) { $response .= &make_message( $code, $messages->{$code} ); }
-		else { $response .= &make_connectioninfo( $code, $timeout ); }
-	} elsif ( $call eq "disconnect" ) {
+		my ( $code, $timeout ) = &Service::Connection::connect( $query->param('usage'), 
+                                                            $query->param('login'), 
+                                                            $query->param('pass') );
+		my $messages = { -1 => 'Empty login', 
+                     -2 => 'Maximum number of connections reached', 
+                     -3 => 'Authentication failed' };
+		if ( $code >= -3 && $code <= -1 ) {
+      $response .= &_make_message( $code, $messages->{$code} );
+    }
+		else {
+      $response .= &_make_connectioninfo( $code, $timeout );
+    }
+	
+  } elsif ( $call eq "disconnect" ) {
+    # Disconnect servce
 		my $code = &Service::Connection::disconnect( $query->param('key') );
-		my $messages = { 0 => 'Disconnection failed', 1 => 'Disconnection OK' };
-		$response .= &make_message( $code, $messages->{$code} );
-	} elsif ( $call eq "ping" ) {
+		my $messages = { 0 => 'Disconnection failed', 
+                     1 => 'Disconnection OK' };
+		$response .= &_make_message( $code, $messages->{$code} );
+	
+  } elsif ( $call eq "ping" ) {
+    # Ping service
 		my $code = &Service::Connection::ping( $query->param('key') );
-		my $messages = { 0 => 'Ping failed', 1 => 'Ping OK' };
-		$response = &make_message( $code, $messages->{$code} );
+		my $messages = { 0 => 'Ping failed', 
+                     1 => 'Ping OK' };
+		$response = &_make_message( $code, $messages->{$code} );
+		
 	} elsif ( $call eq "getUsers" ) {
-		$response .= &make_users( &Service::Connection::getUsers() );
-	} elsif ( $call eq "getTopicProperties" ) {
-		my ( $code, $text ) = &Service::Topics::getTopicProperties( $query->param('key'), $query->param('web'), $query->param('topic') );
-		if ( $code == 0 ) { $response .= &make_message( $code, 'Connection required to invoke service' ); }
-		else { $response .= &make_topic_properties( $text ); }
-	} elsif ( $call eq "lockTopic" ) {
-		my ( $code, $info ) = &Service::Topics::lockTopic( $query->param('key'), $query->param('web'),
-						      							   $query->param('topic'), $query->param('doUnlock') );
-		my $messages = { -1 => 'Existing topic required', -2 => 'Connection required to invoke service', 
-						 0 => "Operation failed, lock already put by $info", 1 => 'Operation succeded' };
-		$response .= &make_message( $code, $messages->{$code} );
-	} elsif ( $call eq "getChildTopics" ) {
+	  # GetUsers service
+		$response .= &_make_users( &Service::Connection::getUsers() );
+	
+  } elsif ( $call eq "getTopicProperties" ) {
+		my ( $code, $text ) = &Service::Topics::getTopicProperties( $query->param('key'), 
+                                                                $query->param('web'), 
+                                                                $query->param('topic') );
+		if ( $code == 0 ) {
+      $response .= &_make_message( $code, 'Connection required to invoke service' );
+    } elsif ( $code == -1 ) {
+      $response .= &_make_message( $code, 'Topic doesn\'t exist' );
+    }
+		else {
+      $response .= &_make_topic_properties( $text );
+    }
+	
+  } elsif ( $call eq "lockTopic" ) {
+    # LockTopic service
+		my ( $code, $info ) = &Service::Topics::lockTopic( $query->param('key'), 
+                                                       $query->param('web'),
+                                                       $query->param('topic'), 
+                                                       $query->param('doUnlock') );
+		my $messages = { -1 => 'Existing topic required', 
+                     -2 => 'Connection required to invoke service', 
+                      0 => "Operation failed, lock already put by $info", 
+                      1 => 'Operation succeded' };
+		$response .= &_make_message( $code, $messages->{$code} );
+	
+  } elsif ( $call eq "getChildTopics" ) {
+    # Get children of a topic
 	  my $web = $query->param('web');
 	  my $topic = $query->param('topic');
 		my ( $code, @list ) = &Service::Topics::getChildTopics( $web, $topic );
-		my $messages = { -2 => "Web $web doesn't exists", -1 => "Topic $topic doesn't exists"};
-		if ( $code >= -2 && $code < 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
-		else { $response .= &make_topics_list( @list ); }
+		my $messages = { -2 => "Web $web doesn't exists", 
+                     -1 => "Topic $topic doesn't exists"};
+		if ( $code >= -2 && $code < 0 ) {
+      $response .= &_make_message( $code, $messages->{$code} );
+    }
+		else { $response .= &_make_topics_list( @list ); }
+
 	} elsif ( $call eq "getWebs" ) {
+	  # Get webs
 	  my $web = $query->param('web');
 	  my @list = &Service::Topics::getWebs( $web );
-	  $response .= &make_webs_list( @list );
+	  $response .= &_make_webs_list( @list );
+
 	} elsif ( $call eq "setAdminLock" ) {
-		my ( $code, $info ) = &Service::Connection::setAdminLock( $query->param('key'), $query->param('doUnlock') );
-		my $messages = { -2 => 'Connection required to invoke service', -1 => 'Admin status is required to control administrative lock',
+	  # Set administrative lock
+		my ( $code, $info ) = &Service::Connection::setAdminLock( $query->param('key'), 
+                                                              $query->param('doUnlock') );
+		my $messages = { -2 => 'Connection required to invoke service', 
+                     -1 => 'Admin status is required to control administrative lock',
 						          0 => "Operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"), 
                       1 => 'Operation succeded' };
-		$response .= &make_message( $code, $messages->{$code} );
+		$response .= &_make_message( $code, $messages->{$code} );
+
 	} elsif ( $call eq "renameTopic" ) {
+	  # Rename topic
 	  my $web = $query->param('web');
 	  my $topic = $query->param('topic');
 	  my $name = $query->param('name');
-	  my ( $code, $info ) = &Service::Refactoring::renameTopic( $query->param('key'), $web, $topic,
-                                                              $name, $query->param('update') );
+	  my ( $code, $info ) = &Service::Refactoring::renameTopic( $query->param('key'), 
+                                                              $web, 
+                                                              $topic,
+                                                              $name, 
+                                                              $query->param('doUpdate'), 
+                                                              $query->param('doBreakLock') );
     my $messages = { 0 => "Rename operation succeeded",
                      1 => 'Connection required to invoke service',
                      2 => "Rename operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
                      3 => "Topic $web.$topic doesn't exist",
                      4 => "Topic $web.$name already exists",
                      5 => "$name isn't a WikiWord",
-                     6 => 'Permissions denied',
-                     7 => "Unable to put lock on topic (already put by $info)",
-                     8 => "Rename error (code $info)"
+                     6 => "Unable to put lock on $web.$topic (already put by $info)",
+                     7 => "Rename error (code $info)"
 						       };
-		$response .= &make_message( $code, $messages->{$code} );
+		$response .= &_make_message( $code, $messages->{$code} );
+
 	} elsif ( $call eq "moveTopic" ) {
+	  # Move topic
 	  my $srcWeb = $query->param('srcWeb');
 	  my $topic = $query->param('topic');
 	  my $dstWeb = $query->param('dstWeb');
 	  my $parent = $query->param('parent');
-	  my ( $code, $info ) = &Service::Refactoring::moveTopic( $query->param('key'), $srcWeb, $topic,
-                                                            $dstWeb, $parent, $query->param('update') );
+	  my ( $code, $info ) = &Service::Refactoring::moveTopic( $query->param('key'), 
+                                                            $srcWeb, 
+                                                            $topic,
+                                                            $dstWeb, 
+                                                            $parent, 
+                                                            $query->param('doUpdate'), 
+                                                            $query->param('doBreakLock') );
     my $messages = { 0 => "Move operation succeeded",
                      1 => 'Connection required to invoke service',
                      2 => "Move operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
                      3 => "Topic $srcWeb.$topic doesn't exist",
                      4 => "Topic $dstWeb.$parent doesn't exist",
-                     5 => 'Permissions denied',
-                     6 => "Unable to put lock on topic (already put by $info)",
-                     7 => "Topic $dstWeb.$topic already exists",
-                     8 => "Move error (code $info)",
-                     9 => "Parent change error (code $info)"
+                     5 => "Unable to put lock on $srcWeb.$topic (already put by $info)",
+                     6 => "Topic $dstWeb.$topic already exists",
+                     7 => "Move error (code $info)",
+                     8 => "Parent change error (code $info)"
 						       };
-		$response .= &make_message( $code, $messages->{$code} );                                                     
+		$response .= &_make_message( $code, $messages->{$code} ); 
+          
+  } elsif ( $call eq "removeTopic" ) {
+    # Remove topic
+    my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+	  my $trashName = $query->param('trashName');
+	  my ( $code, $info ) = &Service::Refactoring::removeTopic( $query->param('key'),
+	                                                            $web, 
+                                                              $topic,
+                                                              $trashName, 
+                                                              $query->param('doBreakLock') );               
+	  my $messages = { 0 => "Remove operation succeeded",
+                     1 => 'Connection required to invoke service',
+                     2 => "Remove operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
+                     3 => "Topic $web.$topic doesn't exist",
+                     4 => "Unable to put lock on $web.$topic (already put by $info)",
+                     5 => "$trashName isn't a WikiWord",
+                     6 => "Error when moving to Trash web (code $info)"
+						       };
+		$response .= &_make_message( $code, $messages->{$code} );
+		
+  } elsif ( $call eq "mergeTopics" ) {
+    # Merge topics
+    my $webTarget = $query->param('webTarget');
+	  my $topicTarget = $query->param('topicTarget');
+	  my $webFrom = $query->param('webFrom');
+	  my $topicFrom = $query->param('topicFrom');
+	  my ( $code, $info ) = &Service::Refactoring::mergeTopics( $query->param('key'),
+	                                                            $webTarget, 
+	                                                            $topicTarget, 
+	                                                            $webFrom, 
+	                                                            $topicFrom, 
+	                                                            $query->param('$doAttachments'), 
+	                                                            $query->param('doBreakLock'), 
+	                                                            $query->param('doRemove'), 
+	                                                            $query->param('dontNotify') );
+    my $messages = { 0 => "Merge operation succeeded",
+                     1 => 'Connection required to invoke service',
+                     2 => "Merge operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
+                     3 => "Topic $webTarget.$topicTarget doesn't exist",
+                     4 => "Topic $webFrom.$topicFrom doesn't exist",
+                     5 => "Unable to merge same topics",
+                     6 => "Unable to put lock on $webTarget.$topicTarget (already put by $info)",
+                     7 => "Error when saving $webTarget.$topicTarget (code $info)", 
+                     8 => "Error when moving $webFrom.$topicFrom to Trash web (code $info)", 
+                     9 => "Error when copying attachments from $webFrom.$topicFrom to $webTarget.$topicTarget (code $info)"
+						       };
+		$response .= &_make_message( $code, $messages->{$code} );
+		
+  } elsif ( $call eq "copyTopic" ) {
+    # Copy topic
+    my $srcWeb = $query->param('srcWeb');
+	  my $topic = $query->param('topic');    
+    my $dstWeb = $query->param('dstWeb');
+    my $newName = $query->param('newName');  
+    my $parent = $query->param('parent');      
+    my ( $code, $info ) = &Service::Refactoring::copyTopic( $query->param('key'), 
+                                                            $srcWeb, 
+                                                            $topic, 
+                                                            $dstWeb, 
+                                                            $newName, 
+                                                            $parent, 
+                                                            $query->param('$doAttachments'), 
+                                                            $query->param('doBreakLock') );
+    my $messages = { 0 => "Copy operation succeeded",
+                     1 => 'Connection required to invoke service',
+                     2 => "Copy operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
+                     3 => "Topic $srcWeb.$topic doesn't exist",
+                     4 => "Destination topic already exists",
+                     5 => "Topic $dstWeb.$parent doesn't exist",
+                     6 => "$newName isn't a WikiWord",
+                     7 => "Unable to put lock on copied topic (already put by $info)",
+                     8 => "Error when saving copied topic (code $info)",  
+                     9 => "Error when copying attachments (code $info)"
+						       };
+		$response .= &_make_message( $code, $messages->{$code} );
+                                            
 	} else {
 		$content_type = "text/html";
 		$response = "<h1>Unknown service invoked</h1>";
@@ -128,19 +245,19 @@ if ( $call eq "" ) {
 }
 
 # Create XML message
-sub make_message {
+sub _make_message {
 	my ( $code, $content ) = @_;
 	return "<message><code>$code</code><content>$content</content></message>";
 }
 
 # Create XML connection information
-sub make_connectioninfo {
+sub _make_connectioninfo {
 	my ( $key, $timeout ) = @_;
 	return "<connection><key>$key</key><timeout>$timeout</timeout></connection>";
 }
 
 # Create XML users representation
-sub make_users {
+sub _make_users {
 	my ( $users_ref ) = @_;
 	my ( $key, $usage, $login, $cnx );
 	my $response = "<users>";
@@ -155,7 +272,7 @@ sub make_users {
 }
 
 # Create XML listing of topics
-sub make_topics_list {
+sub _make_topics_list {
 	my ( @list ) = @_;
 	my $response = "<topics>";
 	foreach ( @list ) {
@@ -165,7 +282,7 @@ sub make_topics_list {
 }
 
 # Create XML listing of webs
-sub make_webs_list {
+sub _make_webs_list {
 	my ( @list ) = @_;
 	my $response = "<webs>";
 	foreach ( @list ) {
@@ -175,7 +292,7 @@ sub make_webs_list {
 }
 
 # Create XML topic properties representation
-sub make_topic_properties {
+sub _make_topic_properties {
 	my ( $topic ) = @_;
 	my $web = $topic->{'web'};
 	my $name = $topic->{'name'};
@@ -189,8 +306,13 @@ sub make_topic_properties {
 	my $m_date = $topic->{'mDate'};
 	my $format = $topic->{'format'};
 	my $version = $topic->{'version'};
+	my @attachments = @{$topic->{'attachments'}};
+	my $attachmentsNames = "";
+	foreach my $attachment ( @attachments ) {
+    $attachmentsNames .= "<attachment>".$attachment->{"name"}."</attachment>";
+  }
 	my $response = "<topicProperties>";
-	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version>";
+	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version><attachments>$attachmentsNames</attachments>";
 	$response .= "</topicProperties>";
 	return $response;
 }

@@ -6,22 +6,22 @@ package Service::Locks;
 use strict;
 use File::stat;
 
-use vars qw($lock);
+use vars qw( $lock );
 
 # Lock file
-$lock = "$Service::locks_file.lock";
+$lock = "$Service::locksFile.lock";
 
 sub load {
 	my $locks_ref;
 	my ( $line, $key, $saved_date, $filename, $effective_date, $failed );
 	&Service::FLock::lock( $lock );
-	open(FILE, "<$Service::locks_file") or $failed = 1;
+	open( FILE, "<$Service::locksFile" ) or $failed = 1;
 	if ( ! $failed ) {
  		while( $line = <FILE> ) {
 			( $key, $saved_date, $filename ) = split/ /, $line, 3;
 			chomp $filename;
 			if ( $filename ne '' && -e $filename ) {
-				my $st = stat($filename);
+				my $st = stat( $filename );
 				if ( $st ) {
 					$effective_date = $st->mtime;
 					# Load lock if dates are equals
@@ -40,7 +40,7 @@ sub save {
 	my $failed;
 	&Service::FLock::lock( $lock );
 	# Save values in text file
-	open(FILE, ">$Service::locks_file") or $failed = 1;
+  open( FILE, ">$Service::locksFile" ) or $failed = 1;
 	if ( ! $failed ) {
 		for my $key ( sort keys %$locks_ref ) {
 			my $filenames = $locks_ref->{ $key };
@@ -56,27 +56,27 @@ sub save {
 
 sub add {
 	my ( $key, $web, $topic ) = @_;
-	my $filename = getLockFilename($web, $topic);
-	my $st = stat($filename);
+	my $filename = &getLockFilename( $web, $topic );
+	my $st = stat( $filename );
 	if ( $st ) {
 		my $date = $st->mtime;
 		# Loading locks associations
 		my $locks = load();
 		# Adding association
 		$locks->{$key}{$filename} = $date;
-		&save($locks);
+		&save( $locks );
 	}
 }
 
 sub remove {
 	my ( $key, $web, $topic ) = @_;
-	my $filename = getLockFilename($web, $topic);
+	my $filename = &getLockFilename( $web, $topic );
 	# Loading locks associations
 	my $locks = load();
 	# Removing association
-	my $hash = $locks->{ $key };
+	my $hash = $locks->{$key};
 	delete $hash->{$filename};
-	&save($locks);
+	&save( $locks );
 }
 
 sub getLocks {
@@ -93,7 +93,7 @@ sub getLocks {
 
 sub getLockingUser {
 	my ( $web, $topic ) = @_;
-	my $filename =  getLockFilename($web, $topic);
+	my $filename =  &getLockFilename($web, $topic);
 	# Loading locks associations
 	my $locks = load();
 	my @results = ();
@@ -102,6 +102,7 @@ sub getLockingUser {
 			push @results, $key if ( $filename eq $name );
 		}
 	}
+	# Return the last if there are several users
 	return $results[$#results];
 }
 
