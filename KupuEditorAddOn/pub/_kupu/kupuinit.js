@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupuinit.js,v 1.2 2004/10/30 18:21:32 romano Exp $
+// $Id: kupuinit.js,v 1.3 2004/12/18 17:40:27 romano Exp $
 
 /*****************************************************************************
  * 
@@ -18,9 +18,8 @@
  * Modifications done for TWiki KupuEditorAddOn :
  * - 2004-10-04 - TWiki specific tools Kupu registering
  * - 2004-10-04 - Kupu base tools unregistering (Properties, Links, Images)
- * - 2004-10-09 - Save call
- * - 2004-10-09 - Translators instanciation
- * - 2004-10-09 - Source Edit Tool registering 
+ * - 2004-12-18 - KupuEditor Instanciation
+ * - 2004-10-09 - Translators instanciation 
  *  
  *****************************************************************************/
 
@@ -46,8 +45,15 @@ function initKupu(iframe) {
     // the we create the document, hand it over the id of the iframe
     var doc = new KupuDocument(iframe);
     
+    /* TWiki KupuEditorAddOn translator tools */
+    var html2twikitranslatortool = new HtmlToTwikiTranslatorTool(conf.html2twiki);
+    var twiki2htmltranslatortool = new TwikiToHtmlTranslatorTool(conf.twiki2html);
+    
     // now we can create the controller
-    var kupu = new KupuEditor(doc, conf, l);
+    /* TWiki KupuEditorAddOn : modified KupuEditor instanciation */
+    //var kupu = new KupuEditor(doc, conf, l);
+    var kupu = new KupuEditor(doc, conf, l, html2twikitranslatortool, twiki2htmltranslatortool);
+    /* -- End of modifications */
 
     var contextmenu = new ContextMenu();
     kupu.setContextMenu(contextmenu);
@@ -60,22 +66,11 @@ function initKupu(iframe) {
     kupu.registerTool('ui', ui); // XXX Should this be a different method?
 
     // add the buttons to the toolbar
-    
-    /* TWiki KupuEditorAddOn translator tools */
-    var html2twikitranslatortool = new HtmlToTwikiTranslatorTool();
-    var twiki2htmltranslatortool = new TwikiToHtmlTranslatorTool();
-    
-    /* TWiki KupuEditorAddOn : modified save action */       
-    //var savebuttonfunc = function(button, editor) {
-    //  editor.saveDocument(conf.redirect)
-    //};
-    // var savebuttonfunc = function(button, editor) {editor.saveDocument()};
+          
     var savebuttonfunc = function(button, editor) {
-      editor.saveDocument(conf.redirect, 
-                          html2twikitranslatortool, 
-                          'kupu-editor-textarea');
+      editor.saveDocument(conf.redirect)
     };
-    /* -- End of modifications */
+    var savebuttonfunc = function(button, editor) {editor.saveDocument()};
     
     var savebutton = new KupuButton('kupu-save-button', savebuttonfunc);
     kupu.registerTool('savebutton', savebutton);
@@ -210,11 +205,9 @@ function initKupu(iframe) {
     var showpathtool = new ShowPathTool();
     kupu.registerTool('showpathtool', showpathtool);
 
-    /* TWiki KupuEditorAddOn : no XHTML source edition */ 
-    //var sourceedittool = new SourceEditTool('kupu-source-button',
-    //                                        'kupu-editor-textarea');
-    //kupu.registerTool('sourceedittool', sourceedittool);
-    /* -- End of modifications */
+    var sourceedittool = new SourceEditTool('kupu-source-button',
+                                            'kupu-editor-textarea');
+    kupu.registerTool('sourceedittool', sourceedittool);
     
     // register some cleanup filter
     // remove tags that aren't in the XHTML DTD
@@ -297,13 +290,6 @@ function initKupu(iframe) {
                                            'permissions-title',
                                            'debug-title'));
     kupu.registerTool('rollingtool', rollingtool);
-    
-    // TWiki KupuEditorAddOn twiki source edition tool
-    var twikisourceedittool = new SourceEditTool('kupu-source-button',
-                                                 'kupu-editor-textarea',
-                                                 html2twikitranslatortool,
-                                                 twiki2htmltranslatortool);
-    kupu.registerTool('sourceedittool', twikisourceedittool);
 
     return kupu;
 };
