@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupueditor.js,v 1.2 2004/10/30 18:21:26 romano Exp $
+// $Id: kupueditor.js,v 1.3 2004/12/18 17:39:44 romano Exp $
 
 /*****************************************************************************
  * 
@@ -19,7 +19,7 @@
  * - 2004-10-04 - Initialization of a new handler completeStateHandler in 
  *                KupuEditor._initializeEventHandlers
  * - 2004-10-04 - completeStateHandler and completeState functions
- * - 2004-10-09 - saveDocument prototype
+ * - 2004-12-18 - KupuEditor prototype
  * - 2004-10-24 - saveDocument source retrieving for translation   
  *  
  *****************************************************************************/
@@ -91,7 +91,10 @@ function KupuDocument(iframe) {
     
 */
 
-function KupuEditor(document, config, logger) {
+/* TWiki KupuEditorAddOn : change prototype of this function */
+//function KupuEditor(document, config, logger) {
+function KupuEditor(document, config, logger, html2twiki, twiki2html) {
+/* -- End of modifications */
     /* Controller */
     
     // attrs
@@ -110,6 +113,11 @@ function KupuEditor(document, config, logger) {
 
     // this property is true if the content is changed, false if no changes are made yet
     this.content_changed = false;
+    
+    /* TWiki KupuEditorAddOn : add fields */
+    this.html2twiki = html2twiki;
+    this.twiki2html = twiki2html;
+    /* -- End of modifications */
 
     // methods
     this.initialize = function() {
@@ -203,10 +211,7 @@ function KupuEditor(document, config, logger) {
         };
     };
     
-    /* TWiki KupuEditorAddOn : change prototype of this function */
-    //this.saveDocument = function(redirect, synchronous) {
-    /* -- End of modifications */
-    this.saveDocument = function(redirect, translatortool, sourcearea, synchronous) {
+    this.saveDocument = function(redirect, synchronous) {
         /* save the document, redirect if te arg is provided and the save is successful 
         
             the (optional) redirect argument can be used to make the client jump to
@@ -235,18 +240,12 @@ function KupuEditor(document, config, logger) {
         // serialize to a string
         //var contents = this._serializeOutputToString(transform);
         var contents;
-        var source = window.document.getElementById(sourcearea);
-        if (source.style.display != 'none') {
-          // source edition
-          contents = source.value;
-        } else {
-          // pass the content through the filters
-          this.logMessage("Starting HTML cleanup");
-          var transform = this._filterContent(this.getInnerDocument().documentElement);
-          this.getInnerDocument().documentElement.getElementsByTagName("body")[0].innerHTML = transform.getElementsByTagName("body")[0].xml;
-          // translation
-          contents = translatortool.translate(this.getInnerDocument().documentElement);
-        };
+        // pass the content through the filters
+        this.logMessage("Starting HTML cleanup");
+        var transform = this._filterContent(this.getInnerDocument().documentElement);
+        this.getInnerDocument().documentElement.getElementsByTagName("body")[0].innerHTML = transform.getElementsByTagName("body")[0].xml;
+        // translation
+        contents = this.html2twiki.translate(this.getInnerDocument().documentElement);
         /* -- End of modifications */
         
         this.logMessage("Cleanup done, sending document to server");
