@@ -1,7 +1,7 @@
 package Service::Topics;
 
 # Topics Management Module with Attachments
-# Author : Romain Raugi
+# Author : Romain Raugi & Maxime Lamure
 
 use strict;
 
@@ -67,13 +67,6 @@ sub isUnlocked {
 	return 1;
 }
 
-# Retrieve topics located in a specific web
-sub getTopicNames {
-	my ( $web ) = @_;
-	return -1 if ( ! &TWiki::Store::webExists( $web ) );
-	return ( 0, &TWiki::Store::getTopicNames( $web ) );
-}
-
 # Test permissions on topics and get content
 # Others tests must have been done before (like topic existence)
 sub testAndGetTopic {
@@ -94,88 +87,6 @@ sub testAndGetTopic {
 		}
 	}
 	return ( 1, $meta, $content );
-}
-
-# Retrieve topic
-sub getTopicContent {
-	my ( $key, $web, $name, $readonly ) = @_;
-	# Retrieve login
-	my $login = &Service::Connection::getLogin( $key );
-	return -2 if ( ! $login );
-  # Initialize
-	&Service::Connection::initialize( $login, $web, $name );
-	# Check permissions
-  my ( $code, $meta, $content ) = &testAndGetTopic( $web, $name, $login, 'change' );
-  return ( $code ) if ( $code != 1 );
-  # Check if topic is locked
-  if( ! $readonly ) {
-    my ( $locked, $info ) = &Service::Topics::lock( $key, $login, $web, $name, 0 );
-    return ( -3, $info ) if ( ! $locked );
-  }
-	# Return value
-	my $topic = {};
-	my %topicinfo = $meta->findOne( "TOPICINFO" );
-	$topic->{'web'} = $web;
-	$topic->{'name'} = $name;
-	$topic->{'author'} = $topicinfo{"author"};
-	$topic->{'date'} = localtime( $topicinfo{"date"} );
-	$topic->{'format'} = $topicinfo{"format"};
-	$topic->{'version'} = $topicinfo{"version"};
-	$topic->{'content'} = $content;
-	my @attachments = $meta->find( "FILEATTACHMENT" );
-	$topic->{'attachments'} = [@attachments];
-	return ( 1, $topic );
-}
-
-# Retrieve attachment
-sub getTopicAttachment {
-	my ( $key, $web, $topic, $name ) = @_;
-	# Retrieve login
-	my $login = &Service::Connection::getLogin( $key );
-	return -2 if ( ! $login );
-  	# Initialize
-	&Service::Connection::initialize( $login, $web, $name );
-	# Check permissions
-  my ( $code, $meta, $content ) = &testAndGetTopic( $web, $topic, $login, 'view' );
-  return ( $code ) if ( $code != 1 );
-  # Get informations
-  my $attachment = {};
-  my @attachments = $meta->find( "FILEATTACHMENT" );
-  foreach ( @attachments ) {
-    last if ( ( $attachment = $_ )->{"name"} eq $name );
-  }
-  # Retrieve attachment content
-  my $topicHandler = &TWiki::Store::_getTopicHandler( $web, $topic, $name );
-  return -3 if ( ! $topicHandler );
-  my $file = $topicHandler->{file};
-  open( FILE, "<$file" ) or return -3;
-  my $buf;
-  $attachment->{'data'} = "";
-  while ( read( FILE, $buf, 60*57 ) ) {
-  $attachment->{'data'} .= encode_base64( $buf );
-  } 
-  close( FILE );
-  return ( 1, $attachment );
-}
-
-# Save new attachment
-sub uploadTopicAttachment {
-	my ( $key, $web, $topic, $attachment ) = @_;
-}
-
-# Rename existing attachment
-sub renameTopicAttachment {
-	my ( $key, $web, $topic, $name, $newName ) = @_;
-}
-
-# Remove attachment
-sub removeTopicAttachment {
-	my ( $key, $web, $topic, $name ) = @_;
-}
-
-# Write topic content (attachments not managed here)
-sub saveTopicContent {
-	my ( $key, $topic, $doUnlock, $dontNotify ) = @_;
 }
 
 # Get Child Topics of the one passed in parameter
@@ -257,61 +168,6 @@ sub getTopicProperties {
 	$topic->{'format'} = $topicinfo{"format"};
 	$topic->{'version'} = $topicinfo{"version"};
 	return ( 1, $topic );
-}
-
-# Copy an attachment file
-# Tests must have been done before
-# Return error code and new attachment
-sub copyAttachmentFile {
-  my ( $oldWeb, $oldTopic, $newWeb, $newTopic, $oldName, $name, $doMove ) = @_;
-  my $topicHandler = &TWiki::Store::_getTopicHandler( $oldWeb, $oldTopic, $oldName );
-  my $new = TWiki::Store::RcsFile->new( $newWeb, $newTopic, $name,
-        ( pubDir => $TWiki::pubDir ) );
-  my $oldAttachment = $topicHandler->{file};
-  my $newAttachment = $new->{file};
-  # Before save, create directories if they don't exist
-  my $tempPath = $new->_makePubWebDir();
-  unless( -e $tempPath ) {
-    umask( 0 );
-    mkdir( $tempPath, 0775 );
-  }
-  $tempPath = $new->_makeFileDir( 1 );
-  unless( -e $tempPath ) {
-    umask( 0 );
-    mkdir( $tempPath, 0775 );
-  }
-  # Copy attachment
-  if ( $doMove ) {
-    if( ! move( $oldAttachment, $newAttachment ) ) {
-        return ( 1, $new );
-    }
-  } else {
-    if( ! copy( $oldAttachment, $newAttachment ) ) {
-        return ( 1, $new );
-    }
-  }
-  # Make sure rcs directory exists
-  my $newRcsDir = $new->_makeFileDir( 1, ",v" );
-  if ( ! -e $newRcsDir ) {
-     umask( 0 );
-     mkdir( $newRcsDir, $topicHandler->{dirPermission} );
-  }
-  # Copy attachment history
-  my $oldAttachmentRcs = $topicHandler->{rcsFile};
-  my $newAttachmentRcs = $new->{rcsFile};
-  if( -e $oldAttachmentRcs ) {
-    if ( $doMove ) {
-      if( ! move( $oldAttachmentRcs, $newAttachmentRcs ) ) {
-
-        return ( 2, $new );
-      }
-    } else {
-      if( ! copy( $oldAttachmentRcs, $newAttachmentRcs ) ) {
-        return ( 2, $new );
-      }
-    }
-  }
-  return ( 0, $new );
 }
 
 1;

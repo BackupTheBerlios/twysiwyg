@@ -1,7 +1,6 @@
 package Service;
 
-# Service Global Module & Requests Dispatcher
-# Author : Romain Raugi
+# Service Global Module
 
 use strict;
 use TWiki;
@@ -14,8 +13,8 @@ use Service::Topics;
 use Service::AdminLock;
 use Service::Refactoring;
 
-use vars qw($endpoint $key_range $timeout $max_connections $clients_file
-            $locks_file $trace_file $trace_mode $jnlpDir $uploadDir $admin_lock_file
+use vars qw($key_range $timeout $max_connections $clients_file
+            $locks_file $trace_file $trace_mode $admin_lock_file
             );
 
 BEGIN {

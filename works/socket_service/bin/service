@@ -55,41 +55,16 @@ if ( $call eq "" ) {
 		$response = &make_message( $code, $messages->{$code} );
 	} elsif ( $call eq "getUsers" ) {
 		$response .= &make_users( &Service::Connection::getUsers() );
-	} elsif ( $call eq "getTopicNames" ) {
-		my $web = $query->param('web');
-		my ( $code, @list ) = &Service::Topics::getTopicNames( $web );
-		if ( $code == -1 ) { $response .= &make_message( $code, "Web $web doesn't exists" ); }
-		else { $response .= &make_topics_list( @list ); }
-	} elsif ( $call eq "getTopicContent" ) {
-		my ( $code, $text ) = &Service::Topics::getTopicContent( $query->param('key'), $query->param('web'), $query->param('topic'), $query->param('readonly') );
-		my $messages = { -3 => "Topic already locked by $text", -2 => 'Connection required to invoke service', 
-						         -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
-		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
-		else { $response .= &make_topic( $text ); }
 	} elsif ( $call eq "getTopicProperties" ) {
 		my ( $code, $text ) = &Service::Topics::getTopicProperties( $query->param('key'), $query->param('web'), $query->param('topic') );
 		if ( $code == 0 ) { $response .= &make_message( $code, 'Connection required to invoke service' ); }
 		else { $response .= &make_topic_properties( $text ); }
-	} elsif ( $call eq "getTopicAttachment" ) {
-		my ( $code, $attachment ) = &Service::Topics::getTopicAttachment( $query->param('key'), $query->param('web'), $query->param('topic'), $query->param('name') );
-		my $messages = { -3 => "Attachment doesn't exists", -2 => 'Connection required to invoke service', 
-						 -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
-		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
-		else { $response .= &make_attachment( $attachment ); }
 	} elsif ( $call eq "lockTopic" ) {
 		my ( $code, $info ) = &Service::Topics::lockTopic( $query->param('key'), $query->param('web'),
 						      							   $query->param('topic'), $query->param('doUnlock') );
 		my $messages = { -1 => 'Existing topic required', -2 => 'Connection required to invoke service', 
 						 0 => "Operation failed, lock already put by $info", 1 => 'Operation succeded' };
 		$response .= &make_message( $code, $messages->{$code} );
-	} elsif ( $call eq "saveTopicContent" ) {
-		# TODO !
-	} elsif ( $call eq "uploadTopicAttachment" ) {
-		# TODO !
-	} elsif ( $call eq "removeTopicAttachment" ) {
-		# TODO !
-	} elsif ( $call eq "renameTopicAttachment" ) {
-		# TODO !
 	} elsif ( $call eq "getChildTopics" ) {
 	  my $web = $query->param('web');
 	  my $topic = $query->param('topic');
@@ -199,29 +174,6 @@ sub make_webs_list {
 	$response .= "</webs>";
 }
 
-# Create XML topic representation
-sub make_topic {
-	my ( $topic ) = @_;
-	my $web = $topic->{'web'};
-	my $name = $topic->{'name'};
-	my $author = $topic->{'author'};
-	my $date = $topic->{'date'};
-	my $format = $topic->{'format'};
-	my $version = $topic->{'version'};
-	my $content = $topic->{'content'};
-	my @attachments = @{$topic->{'attachments'}};
-	my $response = "<topicContent>";
-	$response .= "<web>$web</web><name>$name</name><author>$author</author><date>$date</date><format>$format</format><version>$version</version><content><![CDATA[$content]]></content>";
-	$response .= "<attachments>";
-	foreach my $attachment ( @attachments ) {
-    	# Retrieve properties
-    	$response .= &make_attachment( $attachment );
-	}
-	$response .= "</attachments>";
-	$response .= "</topicContent>";
-	return $response;
-}
-
 # Create XML topic properties representation
 sub make_topic_properties {
 	my ( $topic ) = @_;
@@ -241,21 +193,4 @@ sub make_topic_properties {
 	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version>";
 	$response .= "</topicProperties>";
 	return $response;
-}
-
-# Create XML Base64 binary data of attachment
-sub make_attachment {
-	my ( $attachment ) = @_;
-	my $att_name 	= $attachment->{"name"};
-  my $att_version = $attachment->{"version"};
-  my $att_path    = $attachment->{"path"};
-  my $att_size    = $attachment->{"size"};
-  my $att_date    = localtime( $attachment->{"date"} );
-  my $att_user    = $attachment->{"user"};
-	my $att_comment = $attachment->{"comment"};
-	my $att_attr    = $attachment->{"attr"};
-	my $att_data    = $attachment->{"data"};
-	return "<attachment><name>$att_name</name><version>$att_version</version><path>$att_path</path> \
-			<size>$att_size</size><date>$att_date</date><user>$att_user</user> \
-			<comment><![CDATA[$att_comment]]></comment><attr>$att_attr</attr><data>$att_data</data></attachment>";
 }
