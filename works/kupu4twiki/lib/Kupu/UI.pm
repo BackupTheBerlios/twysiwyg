@@ -175,8 +175,8 @@ sub kupuedit {
       foreach my $topic ( @topics ) {
         $ws .= "<option value=\"$web.$topic\">$web.$topic<\/option>";
       }
-      $tmpl =~ s/%KUPU{"ALLTOPICS"}%/$ws/go;
     }
+    $tmpl =~ s/%KUPU{"ALLTOPICS"}%/$ws/go;
   }
   
   # TWiki Icons
