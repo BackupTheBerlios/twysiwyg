@@ -14,6 +14,7 @@ eval "use TWiki::Store::$TWiki::storeTopicImpl;";
 sub lockTopic {
 	my ( $key, $web, $topic, $doUnlock ) = @_;
 	# Normalize
+	$topic = $TWiki::mainTopicname if ( ( ! $topic ) || ( $topic eq '' ) );
 	( $web, $topic ) = &TWiki::Store::normalizeWebTopicName( $web, $topic );
 	# Test topic existence
 	return -1 if ( ! &TWiki::Store::topicExists( $web, $topic ) );
@@ -24,7 +25,8 @@ sub lockTopic {
 	&Service::Connection::initialize( $login, $web, $topic );
 	# Locking
 	my ( $locked, $info ) = &lock( $key, $login, $web, $topic, $doUnlock );
-	return ( $locked, $info );
+	return ( $locked, $info ) if ( ! $locked );
+	return ( $locked, "lock has been ".( $doUnlock ? "released":"put" )." on $web.$topic" );
 }
 
 # Private locking procedure

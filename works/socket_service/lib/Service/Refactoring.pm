@@ -49,7 +49,7 @@ sub renameTopic {
   @updatedTopics = &_updateReferences( $key, $login, $web, $topic, $web, $name, 1 ) if ( $doUpdate );
   my $updated = join( @updatedTopics, "," );
   &Service::Trace::log( "Rename operation succeded, topics $updated updated" );
-  return 0;
+  return ( 0, "$web.$topic has been renamed to $web.$name" );
 }
 
 # Move operation
@@ -102,7 +102,7 @@ sub moveTopic {
   @updatedTopics = &_updateReferences( $key, $login, $srcWeb, $topic, $dstWeb, $topic, 1 ) if ( ( $srcWeb ne $dstWeb ) && $doUpdate );
   my $updated = join( @updatedTopics, "," );
   &Service::Trace::log( "Move operation succeded, topics $updated updated" );
-  return 0;
+  return ( 0, "$srcWeb.$topic has been moved to $dstWeb.$topic and is the child of $dstWeb.$parent" );
 }
 
 sub _changeParent {
@@ -278,7 +278,7 @@ sub removeTopic {
   my $renameCode = &TWiki::Store::renameTopic( $web, $topic, 'Trash', $trashName, "relink" );
   if ( $renameCode ) { &Service::Trace::log( "Remove error : $renameCode" );return ( 6, $renameCode ); }
   &Service::Trace::log( "Remove operation succeded" );
-  return 0;
+  return ( 0, "$web.$topic has been moved to Trash.$trashName" );
 }
 
 # Merge operation
@@ -340,7 +340,7 @@ sub mergeTopics {
   if ( $removeCode ) { &Service::Trace::log( "Remove error : $removeCode" );return( 8, $removeCode ); }
   &Service::Trace::log( "Merge operation done" );
   return ( 9, $attachmentsCode ) if ( $attachmentsCode );
-  return 0;
+  return ( 0, "$webFrom.$topicFrom and $webTarget.$topicTarget have been merged as $webTarget.$topicTarget" );
 }
 
 # Copy operation
@@ -402,7 +402,7 @@ sub copyTopic {
   if ( $changeCode ) { &Service::Trace::log( "Copy error : $changeCode" );return ( 8, $changeCode ); }
   &Service::Trace::log( "Copy operation done" );
   return ( 9, $attachmentsCode ) if ( $attachmentsCode );
-  return 0;
+  return ( 0, "$srcWeb.$topic has been copied to $dstWeb.$newName and is the child of $dstWeb.$parent" );
 }
 
 # Copy attachment from topic to another

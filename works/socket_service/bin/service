@@ -56,13 +56,15 @@ if ( $call ne "" ) {
 		$response .= &_make_users( &Service::Connection::getUsers() );
 	
   } elsif ( $call eq "getTopicProperties" ) {
+    my $web = $query->param('web');
+    my $topic = $query->param('topic');
 		my ( $code, $text ) = &Service::Topics::getTopicProperties( $query->param('key'), 
-                                                                $query->param('web'), 
-                                                                $query->param('topic') );
+                                                                $web, 
+                                                                $topic );
 		if ( $code == 0 ) {
       $response .= &_make_message( $code, 'Connection required to invoke service' );
     } elsif ( $code == -1 ) {
-      $response .= &_make_message( $code, 'Topic doesn\'t exist' );
+      $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" );
     }
 		else {
       $response .= &_make_topic_properties( $text );
@@ -70,15 +72,17 @@ if ( $call ne "" ) {
 	
   } elsif ( $call eq "lockTopic" ) {
     # LockTopic service
+    my $web = $query->param('web');
+    my $topic = $query->param('topic');
 		my ( $code, $info ) = &Service::Topics::lockTopic( $query->param('key'), 
-                                                       $query->param('web'),
-                                                       $query->param('topic'), 
+                                                       $web,
+                                                       $topic, 
                                                        $query->param('doUnlock') );
-		my $messages = { -1 => 'Existing topic required', 
-                     -2 => 'Connection required to invoke service', 
-                      0 => "Operation failed, lock already put by $info", 
-                      1 => 'Operation succeded' };
-		$response .= &_make_message( $code, $messages->{$code} );
+                                                       
+		if ( $code == -2 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == -1 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
+		elsif ( $code == 0 ) { $response .= &_make_message( $code, "Operation failed, lock already put by $info" ); }
+		else { $response .= &_make_message( $code, "Operation succeded: $info" ); }
 	
   } elsif ( $call eq "getChildTopics" ) {
     # Get children of a topic
@@ -86,7 +90,7 @@ if ( $call ne "" ) {
 	  my $topic = $query->param('topic');
 		my ( $code, @list ) = &Service::Topics::getChildTopics( $web, $topic );
 		my $messages = { -2 => "Web $web doesn't exists", 
-                     -1 => "Topic $topic doesn't exists"};
+                     -1 => "Topic $web.$topic doesn't exists"};
 		if ( $code >= -2 && $code < 0 ) {
       $response .= &_make_message( $code, $messages->{$code} );
     }
@@ -102,11 +106,11 @@ if ( $call ne "" ) {
 	  # Set administrative lock
 		my ( $code, $info ) = &Service::Connection::setAdminLock( $query->param('key'), 
                                                               $query->param('doUnlock') );
-		my $messages = { -2 => 'Connection required to invoke service', 
-                     -1 => 'Admin status is required to control administrative lock',
-						          0 => "Operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"), 
-                      1 => 'Operation succeded' };
-		$response .= &_make_message( $code, $messages->{$code} );
+		
+		if ( $code == -2 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
+		elsif ( $code == -1 ) { $response .= &_make_message( $code, "Admin status is required to control administrative lock" ); }
+		elsif ( $code == 0 ) { $response .= &_make_message( $code, "Operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
+		else { $response .= &_make_message( $code, "Operation succeded, administrative lock has been ".( $query->param('doUnlock') ? "released" : "put" ) ); }
 
 	} elsif ( $call eq "renameTopic" ) {
 	  # Rename topic
@@ -120,10 +124,10 @@ if ( $call ne "" ) {
                                                               $query->param('doUpdate'), 
                                                               $query->param('doBreakLock') );
 		
-		if ( $code == 0 ) { $response .= &_make_message( $code, "Rename operation succeeded" ); }
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Rename operation succeeded: $info" ); }
 		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
 		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Rename operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
-		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic doesn't exist" ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
 		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Target topic already exists" ); }
 		elsif ( $code == 5 ) { $response .= &_make_message( $code, "New name isn't a WikiWord" ); }
 		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Unable to put lock on $web.$topic (already put by $info)" ); }
@@ -143,13 +147,13 @@ if ( $call ne "" ) {
                                                             $query->param('doUpdate'), 
                                                             $query->param('doBreakLock') );
                                                             
-		if ( $code == 0 ) { $response .= &_make_message( $code, "Move operation succeeded" ); }
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Move operation succeeded: $info" ); }
 		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
 		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Move operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
-		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Source topic doesn't exist" ); }
-		elsif ( $code == 4 ) { $response .= &_make_message( $code, "New parent topic doesn't exist" ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Source topic $srcWeb.$topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "New parent topic $dstWeb.$parent doesn't exist" ); }
 		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Unable to put lock (already put by $info)" ); }
-		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Target topic already exists" ); }
+		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Target topic $dstWeb.$topic already exists" ); }
 		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Move error (code $info)" ); }
 		else { $response .= &_make_message( $code, "Parent change error (code $info)" ); }
           
@@ -164,10 +168,10 @@ if ( $call ne "" ) {
                                                               $trashName, 
                                                               $query->param('doBreakLock') );               
 
-		if ( $code == 0 ) { $response .= &_make_message( $code, "Remove operation succeeded" ); }
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Remove operation succeeded: $info" ); }
 		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
 		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Remove operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
-		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic doesn't exist" ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $web.$topic doesn't exist" ); }
 		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Unable to put lock (already put by $info)" ); }
 		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Trash name isn't a WikiWord" ); }
 		else { $response .= &_make_message( $code, "Error when moving to Trash web (code $info)" ); }
@@ -188,11 +192,11 @@ if ( $call ne "" ) {
 	                                                            $query->param('doRemove'), 
 	                                                            $query->param('dontNotify') );
 
-		if ( $code == 0 ) { $response .= &_make_message( $code, "Merge operation succeeded" ); }
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Merge operation succeeded: $info" ); }
 		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
 		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Merge operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
 		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Target topic doesn't exist" ); }
-		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Auxiliary topic doesn't exist" ); }
+		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Auxiliary topic $webFrom.$topicFrom doesn't exist" ); }
 		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Unable to merge same topics" ); }
 		elsif ( $code == 6 ) { $response .= &_make_message( $code, "Unable to put lock on target topic (already put by $info)" ); }
 		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Error when saving target topic (code $info)" ); }
@@ -215,12 +219,12 @@ if ( $call ne "" ) {
                                                             $query->param('$doAttachments'), 
                                                             $query->param('doBreakLock') );
 
-		if ( $code == 0 ) { $response .= &_make_message( $code, "Copy operation succeeded" ); }
+		if ( $code == 0 ) { $response .= &_make_message( $code, "Copy operation succeeded: $info" ); }
 		elsif ( $code == 1 ) { $response .= &_make_message( $code, "Connection required to invoke service" ); }
 		elsif ( $code == 2 ) { $response .= &_make_message( $code, "Copy operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put") ); }
-		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic doesn't exist" ); }
+		elsif ( $code == 3 ) { $response .= &_make_message( $code, "Topic $srcWeb.$topic doesn't exist" ); }
 		elsif ( $code == 4 ) { $response .= &_make_message( $code, "Destination topic already exists" ); }
-		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Parent topic doesn't exist" ); }
+		elsif ( $code == 5 ) { $response .= &_make_message( $code, "Parent topic $dstWeb.$parent doesn't exist" ); }
 		elsif ( $code == 6 ) { $response .= &_make_message( $code, "New name isn't a WikiWord" ); }
 		elsif ( $code == 7 ) { $response .= &_make_message( $code, "Unable to put lock on new topic (already put by $info)" ); }
 		elsif ( $code == 8 ) { $response .= &_make_message( $code, "Error when saving new topic (code $info)" ); }
