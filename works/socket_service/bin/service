@@ -259,7 +259,7 @@ sub _make_users {
 	for $key ( sort keys %$users_ref ) {
 		$usage = $users_ref->{$key}{'USAGE'};
 		$login = $users_ref->{$key}{'LOGIN'};
-		$cnx = localtime($users_ref->{$key}{'CNX'});
+		$cnx = &_make_date( gmtime( $users_ref->{$key}{'CNX'} ) );
 		$response .= "<user><usage>$usage</usage><login>$login</login><connexion>$cnx</connexion></user>";
 	}
 	$response .= "</users>";
@@ -297,8 +297,8 @@ sub _make_topic_properties {
 	my $vperms = $topic->{'view_permissions'};
 	my $locked = $topic->{'locked'} ? $topic->{'locked'} : "";
 	my $author = $topic->{'author'};
-	my $c_date = $topic->{'cDate'};
-	my $m_date = $topic->{'mDate'};
+	my $c_date = &_make_date( gmtime ($topic->{'cDate'} ) );
+	my $m_date = &_make_date( gmtime( $topic->{'mDate'} ) );
 	my $format = $topic->{'format'};
 	my $version = $topic->{'version'};
 	my @attachments = @{$topic->{'attachments'}};
@@ -310,4 +310,11 @@ sub _make_topic_properties {
 	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version><attachments>$attachmentsNames</attachments>";
 	$response .= "</topicProperties>";
 	return $response;
+}
+
+# Format dates
+sub _make_date {
+  my ( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) = @_;
+  # Format 0X
+  return ( $year + 1900 )."-".( $mon + 1 )."-".$mday."T".$hour.":".$min.":".$sec."Z";
 }

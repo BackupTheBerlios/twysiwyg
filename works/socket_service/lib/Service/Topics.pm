@@ -147,8 +147,8 @@ sub getTopicProperties {
 	$topic->{'view_permissions'} = $view_perms;
 	$topic->{'locked'} = $lockUser;
 	$topic->{'author'} = $topicinfo{"author"};
-	$topic->{'cDate'} = localtime( $topicinfo{"date"} );
-	$topic->{'mDate'} = localtime( $mtime );
+	$topic->{'cDate'} = $topicinfo{"date"};
+	$topic->{'mDate'} = $mtime;
 	$topic->{'format'} = $topicinfo{"format"};
 	$topic->{'version'} = $topicinfo{"version"};
 	my @attachments = $meta->find( "FILEATTACHMENT" );
