@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupuinit.js,v 1.3 2004/12/18 17:40:27 romano Exp $
+// $Id: kupuinit.js,v 1.4 2005/01/06 13:00:30 romano Exp $
 
 /*****************************************************************************
  * 
@@ -20,6 +20,7 @@
  * - 2004-10-04 - Kupu base tools unregistering (Properties, Links, Images)
  * - 2004-12-18 - KupuEditor Instanciation
  * - 2004-10-09 - Translators instanciation 
+ * - 2004-12-18 - Editor's saveDocument call 
  *  
  *****************************************************************************/
 
@@ -67,10 +68,12 @@ function initKupu(iframe) {
 
     // add the buttons to the toolbar
           
+    /* TWiki KupuEditorAddOn : modified KupuEditor saveDocument call */
+    //var savebuttonfunc = function(button, editor) {editor.saveDocument()};
     var savebuttonfunc = function(button, editor) {
       editor.saveDocument(conf.redirect)
     };
-    var savebuttonfunc = function(button, editor) {editor.saveDocument()};
+    /* -- End of modifications */
     
     var savebutton = new KupuButton('kupu-save-button', savebuttonfunc);
     kupu.registerTool('savebutton', savebutton);
