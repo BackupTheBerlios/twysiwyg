@@ -23,14 +23,15 @@ my $theRemoteUser = $query->remote_user();
 my $theTopic = $query->param( 'topic' );
 my $theUrl = $query->url;
 
-my ( $topic, $webName, $scriptUrlPath, $userName ) = 
-  TWiki::initialize( $thePathInfo, $theRemoteUser,
-                     $theTopic, $theUrl, $query );
 my $content = "";
 if ($ENV{'REQUEST_METHOD'} eq "PUT") {
   # STDIN contains text to translate
   $content = `/usr/bin/perl HtmlToTwiki.pl`;
 }
+
+my ( $topic, $webName, $scriptUrlPath, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser,
+                     $theTopic, $theUrl, $query );
 
 # Charset management
 $content = &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::convertUtf8toSiteCharset( $content );
