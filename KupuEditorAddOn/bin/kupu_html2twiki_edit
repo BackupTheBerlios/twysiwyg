@@ -1,0 +1,54 @@
+#!/usr/bin/perl -w
+
+BEGIN {
+    # Set default current working directory (needed for mod_perl)
+    if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
+      chdir $1;
+    }
+    # Set library paths in @INC, at compile time
+    unshift @INC, '.';
+    require 'setlib.cfg';
+}
+
+use strict;
+
+use TWiki;
+use TWiki::Contrib::KupuEditorAddOn::Html2TWiki;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
+
+my $query = new CGI;
+my $thePathInfo = $query->path_info(); 
+my $theRemoteUser = $query->remote_user();
+my $theTopic = $query->param( 'topic' );
+my $theUrl = $query->url;
+
+my ( $topic, $webName, $scriptUrlPath, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser,
+                     $theTopic, $theUrl, $query );
+my $content = "";
+if ($ENV{'REQUEST_METHOD'} eq "PUT") {
+  # STDIN contains text to translate
+  $content = `/usr/bin/perl HtmlToTwiki.pl`;
+}
+
+# Charset management
+$content = &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::convertUtf8toSiteCharset( $content );
+
+TWiki::writeHeader( $query );
+# webName & topic are required to handle certains tags specific to this web/topic
+if( ! &TWiki::Store::topicExists( $webName, $topic ) ) {
+  print "";
+} else {
+  # Obtain topic
+  my ( $meta, $topicContent ) = &TWiki::Store::readTopic( $webName, $topic );
+  # Test permissions
+  my $wikiUserName = &TWiki::userToWikiName( $userName );
+  if ( ! &TWiki::Access::checkAccessPermission( "view", $wikiUserName, $topicContent, $topic, $webName ) ) {
+    print "";
+  }
+  else {
+    # Finish translation
+    print &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::translate( $webName, $topic, $content );
+  }
+}

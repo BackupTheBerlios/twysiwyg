@@ -1,0 +1,64 @@
+#!/usr/bin/perl -wT
+
+BEGIN {
+    # Set default current working directory (needed for mod_perl)
+    if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
+      chdir $1;
+    }
+    # Set library paths in @INC, at compile time
+    unshift @INC, '.';
+    require 'setlib.cfg';
+}
+
+use strict;
+
+use TWiki;
+use TWiki::Contrib::KupuEditorAddOn::TWiki2Html;
+use TWiki::Contrib::KupuEditorAddOn::Html2TWiki;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
+
+my $query = new CGI;
+my $thePathInfo = $query->path_info(); 
+my $theRemoteUser = $query->remote_user();
+my $theTopic = $query->param( 'topic' );
+my $theUrl = $query->url;
+
+my ( $topic, $webName, $scriptUrlPath, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser,
+                     $theTopic, $theUrl, $query );
+my $content = "";
+if ($ENV{'REQUEST_METHOD'} eq "PUT") {
+  my $clength = $ENV{'CONTENT_LENGTH'};
+  my $toread = $clength;
+  my $data;
+  my $nread = 0;
+  while ($toread > 0)
+  {
+    $nread = read(STDIN, $data, $clength);
+    last if !defined($nread);
+    $toread -= $nread;
+    $content = $data;
+  }
+}
+
+# Charset management
+$content = &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::convertUtf8toSiteCharset( $content );
+
+TWiki::writeHeader( $query );
+# webName & topic are required to handle certains tags specific to this web/topic
+if( ! &TWiki::Store::topicExists( $webName, $topic ) ) {
+  print "";
+} else {
+  # Obtain topic
+  my ( $meta, $topicContent ) = &TWiki::Store::readTopic( $webName, $topic );
+  # Test permissions
+  my $wikiUserName = &TWiki::userToWikiName( $userName );
+  if ( ! &TWiki::Access::checkAccessPermission( "view", $wikiUserName, $topicContent, $topic, $webName ) ) {
+    print "";
+  }
+  else {
+    # Translate content
+    print &TWiki::Contrib::KupuEditorAddOn::TWiki2Html::translate( $webName, $topic, $content );
+  }
+}
