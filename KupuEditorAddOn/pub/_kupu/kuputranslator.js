@@ -36,7 +36,7 @@ function HtmlToTwikiTranslatorTool(serverSideScript) {
     else {
       alert("Unable to call server-side translator");
       return xhtml;
-    }
+    };
   };
   
   this.translate = function(node) {
@@ -64,7 +64,7 @@ function TwikiToHtmlTranslatorTool(serverSideScript) {
     else {
       alert("Unable to call server-side translator");
       return twikitext;
-    }
+    };
   };
   
   this.processTabs = function(text) {
