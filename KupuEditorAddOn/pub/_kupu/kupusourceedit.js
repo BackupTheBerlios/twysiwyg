@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupusourceedit.js,v 1.2 2004/10/30 18:22:12 romano Exp $
+// $Id: kupusourceedit.js,v 1.3 2004/12/18 17:41:05 romano Exp $
 
 /*****************************************************************************
  * 
@@ -18,22 +18,14 @@
  * Modifications done for TWiki KupuEditorAddOn :
  * - 2004-10-24 - Source save ability
  * - 2004-10-09 - Translation in both directions 
- * - 2004-10-09 - SourceEditTool prototype 
  *  
  *****************************************************************************/
 
-/* TWiki KupuEditorAddOn : SourceEditTool different prototype */
-//function SourceEditTool(sourcebuttonid, sourceareaid) {
-function SourceEditTool(sourcebuttonid, sourceareaid, htmltotwikitranslator, twikitohtmltranslator) {
-/* -- End of modifications */
+function SourceEditTool(sourcebuttonid, sourceareaid) {
 
     /* Source edit tool to edit document's html source */
     this.sourceButton = document.getElementById(sourcebuttonid);
     this.sourceArea = document.getElementById(sourceareaid);
-    /* TWiki KupuEditorAddOn : translators */
-    this.htmltotwikitranslator = htmltotwikitranslator;
-    this.twikitohtmltranslator = twikitohtmltranslator;
-    /* -- End of modifications */
     
     this.initialize = function(editor) {
         /* attach the event handlers */
@@ -54,12 +46,10 @@ function SourceEditTool(sourcebuttonid, sourceareaid, htmltotwikitranslator, twi
             if (kupu.getBrowserName() == 'Mozilla') {
                 kupudoc.designMode = 'Off';
             };
-            /* TWiki KupuEditorAddOn : TWiki translation and source save ability */
-            //kupu._initialized = false;
+            /* TWiki KupuEditorAddOn : TWiki translation */
+            kupu._initialized = false;
             //var data = kupu.getInnerDocument().documentElement.getElementsByTagName('body')[0].innerHTML;
-            var data = this.htmltotwikitranslator.translate(kupu.getInnerDocument().documentElement);
-            var headNode = kupu.getInnerDocument().documentElement.getElementsByTagName("head")[0];
-            var metaTags = kupu.getInnerDocument().documentElement.getElementsByTagName("meta");
+            var data = this.editor.html2twiki.translate(kupudoc.documentElement);
             /* -- End of modifications */
             sourcearea.value = data;
             editorframe.style.display = 'none';
@@ -68,19 +58,14 @@ function SourceEditTool(sourcebuttonid, sourceareaid, htmltotwikitranslator, twi
             var data = sourcearea.value;
             /* TWiki KupuEditorAddOn : TWiki translation */
             //kupu.getInnerDocument().documentElement.getElementsByTagName('body')[0].innerHTML = data;
-            var metaTags = kupu.getInnerDocument().documentElement.getElementsByTagName("meta");
-            kupu.getInnerDocument().documentElement.getElementsByTagName('body')[0].innerHTML = this.twikitohtmltranslator.translate(data);
-            metaTags.namedItem('view_permissions').setAttribute('content', this.twikitohtmltranslator.getViewPermissions());
-            metaTags.namedItem('change_permissions').setAttribute('content', this.twikitohtmltranslator.getChangePermissions());
+            this.editor.twiki2html.translate(data, kupudoc.documentElement);
             /* -- End of modifications */
             sourcearea.style.display = 'none';
             editorframe.style.display = 'block';
             if (kupu.getBrowserName() == 'Mozilla') {
                 kupudoc.designMode = 'On';
             };
-            /* TWiki KupuEditorAddOn : TWiki translation */
-            //kupu._initialized = true;
-            /* -- End of modifications */
+            kupu._initialized = true;
         };
      };
 };
