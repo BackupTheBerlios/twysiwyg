@@ -2,7 +2,7 @@
 
 Previously, we worked on Codev.TwysiwygEditor. This was an original approach of WYSIWYG editor integration based on Java Web Start and Web services. Unfortunately, despite Java Doc says " _The purpose of HTMLDocument model is to support both browsing and editing_ ", HTML Java API (1.4) was so buggy that we work now on a solution based on Kupu (http://kupu.oscom.org).
 
-Kupu is a <nop>JavaScript HTML editor compatible with Mozilla & IE. To translate HTML to TWiki syntax, we use a the translator written in Perl by Frederic Luddeni.
+Kupu is a <nop>JavaScript HTML editor compatible with Mozilla & IE. To translate HTML to TWiki syntax, we use a translator written in Perl by Frederic Luddeni.
 
 %TOC%
 

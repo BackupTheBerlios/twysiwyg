@@ -33,12 +33,10 @@ We added to Kupu :
    * kupuimages/smiley.gif
    
 ------------------------------------------------------------------------
-- a modified version of Frederic Luddeni's Java XHTML/TWikiML translator
+- a version of Frederic Luddeni's Perl XHTML/TWikiML translator
 ------------------------------------------------------------------------
-The package contains a JavaScript translated version of Frederic Luddeni's
-XHTML/TWikiML translator : kuputranslator.js. Modifications have been 
-mentioned in this file. Most of TWikiML to XHTML translator has been
-modified.
+The package contains a Perl version of Frederic Luddeni's
+XHTML/TWikiML translator : HtmlToTwiki.pl.
      
 --------------------------------------------
 - Crawford Currie's contrib/plugin installer
@@ -54,5 +52,6 @@ KupuEditorAddOn (un)installation is done via this.
    * lib/TWiki/Contrib/KupuEditorAddOn/*.pm
    * templates/kupu*.tmpl
    * kuputwikitools.js
+   * kuputranslator.js
 
 Damien Mandrioli & Romain Raugi
