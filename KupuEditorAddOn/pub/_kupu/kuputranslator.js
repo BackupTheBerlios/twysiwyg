@@ -66,12 +66,6 @@ function TwikiToHtmlTranslatorTool(serverSideScript) {
       return twikitext;
     };
   };
-  
-  this.processTabs = function(text) {
-    /* restaure tabulations */
-    // TODO : find a better regexp to replace " {3}" by \t before bullets
-    return text.replace(new RegExp("   ", "g"), "\t");
-  };
 
   this.build = function(text, node) {
     /* build html document */
@@ -81,7 +75,6 @@ function TwikiToHtmlTranslatorTool(serverSideScript) {
   
   this.translate = function(text, root) {
     /* translation main procedure */
-    text = this.processTabs(text);
     var html = this.callServerTranslator(text);
     this.build(html, root);
   };
