@@ -23,5 +23,5 @@ use TWiki;
 use vars qw( $VERSION );
 
 BEGIN {
-    $VERSION = 1.0.4;
+    $VERSION = 1.0.5;
 }
