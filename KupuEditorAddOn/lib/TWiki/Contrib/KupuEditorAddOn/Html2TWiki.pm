@@ -137,6 +137,15 @@ sub translate {
   $content =~ s/<meta\s+name=\"$changePermissionsMetaName\"\s*\/?>(\s*<\/meta\s*>)?//gi;
   $content .= "\n\t* SETALLOWTOPICVIEW = $viewPermissions" if ( $viewPermissions );
   $content .= "\n\t* SETALLOWTOPICCHANGE = $changePermissions" if ( $changePermissions );
+  # Bullets (TEMP)
+  $content =~ s/\n\s{3}\*/\n\t\*/g;
+  $content =~ s/\n\s{3}([0-9+])/\n\t$1/g;
+  $content =~ s/\n\s{6}\*/\n\t\t\*/g;
+  $content =~ s/\n\s{6}([0-9+])/\n\t\t$1/g;
+  $content =~ s/\n\s{9}\*/\n\t\t\t\*/g;
+  $content =~ s/\n\s{9}([0-9+])/\n\t\t\t$1/g;
+  # WikiWords (TEMP)
+  $content =~ s/\[\[([^\]]+)\]\[\1\]\]/$1/gi;
   # Return
   return $content;
 }
