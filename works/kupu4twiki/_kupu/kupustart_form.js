@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupustart_form.js,v 1.1 2004/09/08 16:10:13 romano Exp $
+// $Id: kupustart_form.js,v 1.2 2004/09/09 14:36:59 romano Exp $
 
 function startKupu() {
     var frame = document.getElementById('kupu-editor'); 

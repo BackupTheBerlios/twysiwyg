@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupudrawers.js,v 1.1 2004/09/08 16:10:13 romano Exp $
+// $Id: kupudrawers.js,v 1.2 2004/09/09 14:36:59 romano Exp $
 
 function DrawerTool() {
     /* a tool to open and fill drawers

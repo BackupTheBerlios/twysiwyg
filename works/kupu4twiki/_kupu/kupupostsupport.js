@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupupostsupport.js,v 1.1 2004/09/08 16:10:13 romano Exp $
+// $Id: kupupostsupport.js,v 1.2 2004/09/09 14:36:59 romano Exp $
 
 function SimpleLogger() {
     this.log = function(message, severity) {

@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupusaveonpart.js,v 1.1 2004/09/08 16:10:13 romano Exp $
+// $Id: kupusaveonpart.js,v 1.2 2004/09/09 14:36:59 romano Exp $
 
 function saveOnPart() {
     /* ask the user if (s)he wants to save the document before leaving */

@@ -160,20 +160,24 @@ sub kupuedit {
   
   # All Topics
   my @webs = &TWiki::Store::getAllWebs();
-  my $ws = "";
+  
   my $cws = "";
   my @topics = &TWiki::Store::getTopicNames( $webName );
   foreach my $topic ( @topics ) {
     $cws .= "<option value=\"$topic\">$topic<\/option>";
   }
-  foreach my $web ( sort @webs ) {
-    @topics = &TWiki::Store::getTopicNames( $web );
-    foreach my $topic ( @topics ) {
-      $ws .= "<option value=\"$web.$topic\">$web.$topic<\/option>";
+  $tmpl =~ s/%KUPU{"WEBTOPICS"}%/$cws/go;
+  
+  if ( $tmpl =~ /%KUPU{"ALLTOPICS"}%/ ) {
+    my $ws = "";
+    foreach my $web ( sort @webs ) {
+      @topics = &TWiki::Store::getTopicNames( $web );
+      foreach my $topic ( @topics ) {
+        $ws .= "<option value=\"$web.$topic\">$web.$topic<\/option>";
+      }
+      $tmpl =~ s/%KUPU{"ALLTOPICS"}%/$ws/go;
     }
   }
-  $tmpl =~ s/%KUPU{"ALLTOPICS"}%/$ws/go;
-  $tmpl =~ s/%KUPU{"WEBTOPICS"}%/$cws/go;
   
   # TWiki Icons
   do "imgmap.cfg";
@@ -198,12 +202,11 @@ sub kupuedit {
   my $vars = "";
   @map = split/\n/, $varmap;
   foreach my $exp ( sort @map ) {
-    my ( $var_name, $label ) = split/ /, $exp, 2;
+    my ( $var_name, $label );
+    ( $var_name, $label ) = split/ /, $exp, 2;
     $label = "$var_name : $label";
     $var_name =~ s/%//g;
-    if ( $var_name ) {
-      $vars .= "<option value=\"$var_name\">$label</option>";
-    }
+    $vars .= "<option value=\"$var_name\">$label</option>" if ( $var_name );
   }
   $tmpl =~ s/%KUPU{"TWIKIVARS"}%/$vars/go;
   

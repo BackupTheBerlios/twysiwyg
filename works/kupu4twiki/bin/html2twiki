@@ -1,9 +1,9 @@
-#!/usr/bin/perl -wT
+#!/usr/bin/perl -w
 
 BEGIN {
     # Set default current working directory (needed for mod_perl)
     if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
-        chdir $1;
+      chdir $1;
     }
     # Set library paths in @INC, at compile time
     unshift @INC, '.';

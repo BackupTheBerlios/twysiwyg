@@ -29,8 +29,8 @@ sub translate {
   my $i = 0;
   my @refs = ();
   $content =~ s/([>\]])/$1\n/g;
-  $content =~ s/(href|src|action)=\"(.+)\"/&link($1, $2, \@refs, $i++)/gei;
-  $content =~ s/\[([^\[\]<>]+)\]/&tlink($1, \@refs, $i++)/gei;
+  $content =~ s/(href|src|action)=\"(.+)\"/&_link($1, $2, \@refs, $i++)/gei;
+  $content =~ s/\[([^\[\]<>]+)\]/&_tlink($1, \@refs, $i++)/gei;
   $content =~ s/([>\]])\n/$1/g;
   
   my $host = $TWiki::defaultUrlHost;
@@ -65,7 +65,7 @@ sub translate {
   # Rename internal links class
   $content =~ s/twiki(Anchor)?Link/internal_link/gi;
   # New links
-  $content =~ s/<span\s+class=\"twikiNewLink\"[^>]*>\s*<[^>]*>([^>]*)<[^>]*>\s*<a\s+href=\"([^\?]+)\?[^\"]*\">\s*<sup>\?<\/sup>\s*<\/a>\s*<\/span>/"<a class=\"internal_link\" href=\"".&href_from_new_link($2)."\">$1<\/a>"/gei;
+  $content =~ s/<span\s+class=\"twikiNewLink\"[^>]*>\s*<[^>]*>([^>]*)<[^>]*>\s*<a\s+href=\"([^\?]+)\?[^\"]*\">\s*<sup>\?<\/sup>\s*<\/a>\s*<\/span>/"<a class=\"internal_link\" href=\"".&_hrefFromNewLink($2)."\">$1<\/a>"/gei;
   
   # Restore Verbatim Code
   $content = TWiki::putBackVerbatim( $content, "pre", @verbatim );
@@ -85,11 +85,11 @@ sub translate {
       <style type=\"text\/css\">
         xml { display:none; }
         .variable {
-        border: 1px solid green;
-        padding-left:2px;
-        padding-right:2px;
-        background-color:#DDFFDD;
-        color:green;
+          border: 1px solid green;
+          padding-left:2px;
+          padding-right:2px;
+          background-color:#DDFFDD;
+          color:green;
         }
         a.internal_link { background-color:#DDDDFF;border:1px solid #4444FF;padding-left:2px;padding-right:2px; }
       </style>
@@ -101,30 +101,30 @@ sub translate {
 }
 
 =pod
----++ link( $action, $val, $refs, $i )
+---++ _link( $action, $val, $refs, $i )
 Extract external references. 
 =cut
-sub link() {
+sub _link() {
   my ( $action, $val, $refs, $i ) = @_;
   $refs->[$i] = $val;
   return "$action=\"%_REF$i%\"";
 }
 
 =pod
----++ tlink( $val, $refs, $i )
+---++ _tlink( $val, $refs, $i )
 Extract TWiki references.  
 =cut
-sub tlink() {
+sub _tlink() {
   my ( $val, $refs, $i ) = @_;
   $refs->[$i] = $val;
   return "\[%_REF$i%\]";
 }
 
 =pod
----++ href_from_new_link( $href )
+---++ _hrefFromNewLink( $href )
 Extract New Page from Ref.  
 =cut
-sub href_from_new_link {
+sub _hrefFromNewLink {
   my ( $href ) = @_;
   $href =~ s/edit/view/;
   return $href;

@@ -35,7 +35,7 @@ my $file = `$toeval`;
 $toeval = "head \-1 " . $rootDir . "$bin/" . $file;
 my $header = `$toeval`;
 
-$toeval = "perl \-pi\~ \-e \'s;\#\!/usr/bin/perl \-wT;$header;\' ".$rootDir."$bin/html2twiki ".$rootDir."$bin/kupuedit ".$rootDir."$bin/kupu_attachments ".$rootDir."$bin/twiki2html";
+$toeval = "perl \-pi\~ \-e \'s;\#\!/usr/bin/perl \-w(T)?;$header;\' ".$rootDir."$bin/html2twiki ".$rootDir."$bin/kupuedit ".$rootDir."$bin/kupu_attachments ".$rootDir."$bin/twiki2html";
 `$toeval`;
 
 print("> Copying Kupu modules...\n");
@@ -79,5 +79,6 @@ $toeval = "cp templates/kupu*.tmpl " . $rootDir . "templates";
 $toeval = "chmod 744 " . $rootDir . "templates/kupu*.tmpl";
 `$toeval`;
 
-print("\nIMPORTANT : Read README.TXT to complete install procedure\n\n");
+print("\nWARNING : Ensure first line of html2twiki script doesn't contain -T option");
+print("\nRead README.TXT to complete install procedure\n\n");
 

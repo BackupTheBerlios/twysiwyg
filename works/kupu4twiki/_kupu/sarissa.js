@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: sarissa.js,v 1.1 2004/09/08 16:10:13 romano Exp $
+// $Id: sarissa.js,v 1.2 2004/09/09 14:36:59 romano Exp $
 
 // some basic browser detection TODO: change this 
 var _SARISSA_IS_IE = (navigator.userAgent.toLowerCase().indexOf("msie") > -1)?true:false;

@@ -3,7 +3,7 @@
 BEGIN {
     # Set default current working directory (needed for mod_perl)
     if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
-        chdir $1;
+      chdir $1;
     }
     # Set library paths in @INC, at compile time
     unshift @INC, '.';
@@ -16,10 +16,10 @@ use CGI;
 use TWiki;
 
 =pod
----++ save_attachment( $query, $userName, $webName, $topic, $meta, $content )
+---++ _saveAttachment( $query, $userName, $webName, $topic, $meta, $content )
 Save attachment. 
 =cut
-sub save_attachment {
+sub _saveAttachment {
     my ( $query, $userName, $webName, $topic, $meta, $content ) = @_;
     my $comment = $query->param('comment');
     my $hide = $query->param('hide');
@@ -97,11 +97,8 @@ if( &TWiki::Store::topicExists( $webName, $topic ) ) {
     # Save new attachment if necessary
     my $file = $query->param('file');
     if ( $file ) {
-    ( $meta, $content ) = &save_attachment( $query, $userName, $webName, $topic, $meta, $content );
-      # Tip to avoid re-upload when http refresh
-      #TWiki::redirect( $query, $query->url );
+      ( $meta, $content ) = &_saveAttachment( $query, $userName, $webName, $topic, $meta, $content );
     }
-
     # Display existing attachments
     my @attachments = $meta->find( "FILEATTACHMENT" );
     foreach my $attachment (@attachments) {
@@ -137,10 +134,10 @@ body {
   <form id=\"kupu-attachment-form\" enctype=\"multipart/form-data\" action=\"$theUrl/$webName/$topic\" method=\"POST\"/>
     <table width=\"100%\">
       <tr>
-        <td class=\"kupu-toolbox-label\">File</td>
-        <td>
-          <input name=\"file\" id=\"kupu-attachment-file\" type=\"file\" size=\"13\"/>
-        </td>
+         <td class=\"kupu-toolbox-label\">File</td>
+         <td>
+           <input name=\"file\" id=\"kupu-attachment-file\" type=\"file\" size=\"13\"/>
+         </td>
       </tr>
       <tr>
         <td class=\"kupu-toolbox-label\">Comment</td>

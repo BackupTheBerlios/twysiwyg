@@ -3,7 +3,7 @@
 BEGIN {
     # Set default current working directory
     if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
-        chdir $1;
+      chdir $1;
     }
     # Set library paths in @INC at compile time
     unshift @INC, '.';

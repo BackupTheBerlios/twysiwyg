@@ -29,7 +29,7 @@ sub convertUtf8toSiteCharset {
       TWiki::writeWarning "UTF-8 not supported on Perl $] - use Perl 5.8 or higher.";
     }
     TWiki::writeWarning "UTF-8 not yet supported as site charset - TWiki is likely to have problems";
-	} else {
+  } else {
     # Convert from UTF-8 into some other site charset
     TWiki::writeDebug "Converting from UTF-8 to $TWiki::siteCharset";
     # Use conversion modules depending on Perl version
@@ -41,27 +41,24 @@ sub convertUtf8toSiteCharset {
       if( not $charEncoding ) {
         TWiki::writeWarning "Conversion to \$TWiki::siteCharset '$TWiki::siteCharset' not supported, or name not recognised - check 'perldoc Encode::Supported'";
       } else {
-		    ##writeDebug "Converting with Encode, valid 'to' encoding is '$charEncoding'";
-		    # Convert text using Encode:
-		    # - first, convert from UTF8 bytes into internal (UTF-8) characters
-		    $text = Encode::decode("utf8", $text);	
-		    # - then convert into site charset from internal UTF-8,
-		    # inserting \x{NNNN} for characters that can't be converted
+        # Convert text using Encode:
+        # - first, convert from UTF8 bytes into internal (UTF-8) characters
+        $text = Encode::decode("utf8", $text);	
+        # - then convert into site charset from internal UTF-8,
+        # inserting \x{NNNN} for characters that can't be converted
         $text = Encode::encode( $charEncoding, $text, &FB_PERLQQ );
-		    ##writeDebug "Encode result is $fullTopicName";
+        ##writeDebug "Encode result is $fullTopicName";
       }
     } else {
-		  require Unicode::MapUTF8;	# Pre-5.8 Perl versions
+      require Unicode::MapUTF8;	# Pre-5.8 Perl versions
       $charEncoding = $TWiki::siteCharset;
       if( not Unicode::MapUTF8::utf8_supported_charset($charEncoding) ) {
         TWiki::writeWarning "Conversion to \$TWiki::siteCharset '$TWiki::siteCharset' not supported, or name not recognised - check 'perldoc Unicode::MapUTF8'";
       } else {
-		    # Convert text
-		    ##writeDebug "Converting with Unicode::MapUTF8, valid encoding is '$charEncoding'";
-		    $text = Unicode::MapUTF8::from_utf8({ 
-			    			-string => $text, 
-		    			 	-charset => $charEncoding });
-		    # FIXME: Check for failed conversion?
+        # Convert text
+        $text = Unicode::MapUTF8::from_utf8({ 
+                -string => $text, -charset => $charEncoding });
+        # FIXME: Check for failed conversion?
       }
     }
   }
@@ -114,8 +111,6 @@ sub translate {
   if ( $content =~ s/<meta\s+name=\"change_permissions\"\s+content=\"([^\"]+)\"\s*\/?>//i ) { $change_perms = $1; }
   if ( $content =~ s/<meta\s+content=\"([^\"]+)\"\s+name=\"view\_permissions\"\s*\/?>//i ) { $view_perms = $1; }
   if ( $content =~ s/<meta\s+content=\"([^\"]+)\"\s+name=\"change\_permissions\"\s*\/?>//i ) { $change_perms = $1; }
-  # <br/>
-  $content =~ s/<br[^\/>]*\/?>/\n/gi;
   # <nop>
   $content =~ s/\[<nop\s*\/?>\[/\!\[\[/gi;
   $content =~ s/<\/?nop\s*\/?>//gi;
