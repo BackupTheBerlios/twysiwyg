@@ -1,7 +1,10 @@
+./bin/HtmlToTwiki.pl
 ./bin/kupuedit
 ./bin/kupu_attachments
 ./bin/kupu_html2twiki
+./bin/kupu_html2twiki_edit
 ./bin/kupu_twiki2html
+./bin/kupu_twiki2html_edit
 ./data/kupu_imgmap.cfg
 ./data/kupu_varmap.cfg
 ./data/TWiki/KupuEditorAddOn.txt
@@ -22,6 +25,7 @@
 ./KupuEditorAddOn/doc/kupu/STYLEGUIDE.txt
 ./KupuEditorAddOn/doc/kupu/TEMPLATE-SYSTEM.txt
 ./KupuEditorAddOn/doc/LICENSE.txt
+./KupuEditorAddOn_installer.pl
 ./lib/TWiki/Contrib/KupuEditorAddOn/build.pl
 ./lib/TWiki/Contrib/KupuEditorAddOn/Html2TWiki.pm
 ./lib/TWiki/Contrib/KupuEditorAddOn/TWiki2Html.pm

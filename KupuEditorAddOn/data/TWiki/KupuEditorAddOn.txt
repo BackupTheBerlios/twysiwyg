@@ -1,8 +1,8 @@
----+ <nop>%TOPIC% version 1.0b4.1
+---+ <nop>%TOPIC% version 1.0b5
 
 Previously, we worked on Codev.TwysiwygEditor. This was an original approach of WYSIWYG editor integration based on Java Web Start and Web services. Unfortunately, despite Java Doc says " _The purpose of HTMLDocument model is to support both browsing and editing_ ", HTML Java API (1.4) was so buggy that we work now on a solution based on Kupu (http://kupu.oscom.org).
 
-Kupu is a <nop>JavaScript HTML editor compatible with Mozilla & IE. To save content of topic from HTML to TWiki syntax, we use a <nop>JavaScript modified version of the translator written in Java by Frederic Luddeni.
+Kupu is a <nop>JavaScript HTML editor compatible with Mozilla & IE. To translate HTML to TWiki syntax, we use a the translator written in Perl by Frederic Luddeni.
 
 %TOC%
 
@@ -32,6 +32,7 @@ CVS : [[http://developer.berlios.de/projects/twysiwyg][Berlios]]
 
 	* TWiki Cairo+
 	* Perl 5.6+
+	* Perl package Html::Tree for server-side XHTML/TWikiML translator
 
 ---+ Installation
 
@@ -39,10 +40,13 @@ CVS : [[http://developer.berlios.de/projects/twysiwyg][Berlios]]
 	* Unzip ==%TOPIC%.zip== in your twiki installation directory. Content:
   
      | *File:* | *Description:* |
+     |==bin/HtmlToTwiki.pl==| XHTML/TWikiML Translator |
      |==bin/kupuedit==| %TOPIC% host script |
      |==bin/kupu_attachments==| attachments management script |
      |==bin/kupu_html2twiki==| XHTML page open script |
+     |==bin/kupu_html2twiki_edit==| XHTML page translator |
      |==bin/kupu_twiki2html==| topic save script |
+     |==bin/kupu_twiki2html_edit==| TWikiML translator caller |
      |==data/kupu_imgmap.cfg==| icons configuration file |
      |==data/kupu_varmap.cfg==| variables configuration file |
      |==data/TWiki/%TOPIC%.txt==| this topic |
@@ -114,7 +118,7 @@ CVS : [[http://developer.berlios.de/projects/twysiwyg][Berlios]]
      |==pub/_kupu/kupusourceedit.js==| Kupu program |
      |==pub/_kupu/kupustart.js==| Kupu program |
      |==pub/_kupu/kupustart_form.js==| Kupu program |
-     |==pub/_kupu/kuputranslator.js==| XHTML/<nop>TWikiML translator |
+     |==pub/_kupu/kuputranslator.js==| XHTML/<nop>TWikiML translator module |
      |==pub/_kupu/kuputwiki.css==| %TOPIC% CSS classes |
      |==pub/_kupu/kuputwikitools.js==| TWiki dedicated functions |
      |==pub/_kupu/sarissa.js==| Kupu program |
@@ -130,7 +134,12 @@ cd <TWIKI_ROOT_DIR>
 perl KupuEditorAddOn_installer.pl install
 </verbatim>
 
-It will automatically set up permissions.
+Set up permissions :
+<verbatim>
+chmod 755 bin/kupu* lib/TWiki/Contrib/KupuEditorAddOn
+chmod -R 755 pub/_kupu
+chmod 744 lib/Kupu/* templates/kupu*.tmpl
+</verbatim>
 
 	* Perl scripts' shebang
 
@@ -140,9 +149,21 @@ you must modify =bin= scripts shebangs. Here are the concerned scripts :
 <verbatim>
 bin/kupu_attachments
 bin/kupu_html2twiki
+bin/kupu_html2twiki_edit
 bin/kupu_twiki2html
+bin/kupu_twiki2html_edit
 bin/kupuedit
 </verbatim>
+
+%RED%*WARNING*%ENDCOLOR% : 
+Ensure first line of <TWIKI_ROOT_DIR>/bin/kupu_html2twiki_edit script doesn't contain -T option,
+taint mode has to be disabled for this script.
+
+In kupu_html2twiki_edit line 32 :
+<verbatim>
+$content = `/usr/bin/perl HtmlToTwiki.pl`;
+</verbatim>
+Change location of perl command if necessary.
 
 	* htaccess management
 	
@@ -154,7 +175,13 @@ bin/kupuedit
 <Files "kupu_twiki2html">
        require valid-user
 </Files>
+<Files "kupu_twiki2html_edit">
+       require valid-user
+</Files>
 <Files "kupu_html2twiki">
+       require valid-user
+</Files>
+<Files "kupu_html2twiki_edit">
        require valid-user
 </Files>
 <Files "kupu_attachments">
@@ -225,24 +252,12 @@ During link completion, press =->= to go to the end of the completed word.
 
 In Mozilla, to edit after a variable on the same line, press =Enter= in the variable's green box.
 
----++ Source edition
-
-You can save the !TWikiML source you are editing. It can be useful if XHML/<nop>TWikiML translation doesn't give the result you expected.
-
----++ HTML Tables translation
-
-You will probably see that some tables are not translated during XHTML/<nop>TWikiML translation.
-This is the case if there are bullets, line jumps or inner tables inside.
-
----++ <nop>TWikiML to HTML translation
-
-Some elements are not translated yet. Code styled texts, "nops", verbatim blocks and definitions lists are not managed.
-
 ---+ Add-On Info
 
 |  Add-on Author: | TWiki:Main.DamienMandrioli & TWiki:Main.RomainRaugi |
 |  Add-on Version: | 07 Oct 2004 (v1.000) |
 |  Change History: | &nbsp; |
+|  19 Dec 2004: | 1.0b5 version |
 |  24 Oct 2004: | 1.0b4.1 version (some fixes for IE) |
 |  10 Oct 2004: | 1.0b4 version |
 |  09 Sep 2004: | Initial version |

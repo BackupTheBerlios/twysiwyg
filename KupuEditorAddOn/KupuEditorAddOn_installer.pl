@@ -258,10 +258,13 @@ print "\t* You can abort the script at any point and re-run it later\n";
 print "\t* If you answer 'no' to any questions you can always re-run\n";
 print "\t  the script again later\n";
 
-my @manifest = ( 	"./bin/kupuedit", # 
+my @manifest = ( 	"./bin/HtmlToTwiki.pl", # 
+	"./bin/kupuedit", # 
 	"./bin/kupu_attachments", # 
 	"./bin/kupu_html2twiki", # 
+	"./bin/kupu_html2twiki_edit", # 
 	"./bin/kupu_twiki2html", # 
+	"./bin/kupu_twiki2html_edit", # 
 	"./data/kupu_imgmap.cfg", # 
 	"./data/kupu_varmap.cfg", # 
 	"./data/TWiki/KupuEditorAddOn.txt", # 
@@ -282,6 +285,7 @@ my @manifest = ( 	"./bin/kupuedit", #
 	"./KupuEditorAddOn/doc/kupu/STYLEGUIDE.txt", # 
 	"./KupuEditorAddOn/doc/kupu/TEMPLATE-SYSTEM.txt", # 
 	"./KupuEditorAddOn/doc/LICENSE.txt", # 
+	"./KupuEditorAddOn_installer.pl", # 
 	"./lib/TWiki/Contrib/KupuEditorAddOn/build.pl", # 
 	"./lib/TWiki/Contrib/KupuEditorAddOn/Html2TWiki.pm", # 
 	"./lib/TWiki/Contrib/KupuEditorAddOn/TWiki2Html.pm", # 
