@@ -21,7 +21,11 @@ package TWiki::Contrib::KupuEditorAddOn::Html2TWiki;
 use strict;
 use TWiki;
 
-use vars qw( $imgmap );
+use vars qw( $imgmap $varClass $varTag $viewPermissionsMetaName $changePermissionsMetaName );
+$varClass = 'VARIABLE';
+$varTag = 'SPAN';
+$viewPermissionsMetaName = 'VIEW_PERMISSIONS';
+$changePermissionsMetaName = 'CHANGE_PERMISSIONS';
 
 =pod
 ---++ convertUtf8toSiteCharset( $text )
@@ -89,7 +93,7 @@ HTML 2 TWiki Translation.
 =cut
 sub translate {
   my ( $webName, $topicName, $content ) = @_;
-  
+
   my $host = $TWiki::defaultUrlHost;
   $host =~ s/^(.*)\/$/$1/;
   
@@ -109,14 +113,31 @@ sub translate {
   $pub =~ s/^(.*)\/$/$1/;
   $pub =~ s/^\/(.*)$/$1/;
   $content =~ s/(src|href)=([\'\"])($host)?\/?$pub\/$webName\/$topicName/$1\=$2%ATTACHURL%/gi;
-  # Bullets
-  $content =~ s/\n\s{3}\*/\n\t\*/g;
-  $content =~ s/\n\s{3}([0-9+])/\n\t$1/g;
-  $content =~ s/\n\s{6}\*/\n\t\t\*/g;
-  $content =~ s/\n\s{6}([0-9+])/\n\t\t$1/g;
-  $content =~ s/\n\s{9}\*/\n\t\t\t\*/g;
-  $content =~ s/\n\s{9}([0-9+])/\n\t\t\t$1/g;
-
+  # Variables ( several passes )
+  while ( $content =~ m/<$varTag\s+class=\"$varClass\"\s*>([^<]*)<\/$varTag\s*>/i ) {
+    $content =~ s/<$varTag\s+class=\"$varClass\"\s*>([^<]*)<\/$varTag\s*>/%$1%/gi;
+  }
+  $content =~ s/%(.+)\{\s*(.*)\s*\}%/%$1\{\"$2\"\}%/gi;
+  # Permissions
+  my $viewPermissions = "";
+  my $changePermissions = "";
+  if ( $content =~ s/<meta\s+name=\"$viewPermissionsMetaName\"\s+content=\"([^\"]*)\"\s*\/?>(\s*<\/meta\s*>)?//i ) { 
+  	$viewPermissions = $1; 
+  }
+  elsif ( $content =~ s/<meta\s+content=\"([^\"]*)\"\s+name=\"$viewPermissionsMetaName\"\s*\/?>(\s*<\/meta\s*>)?//i )  { 
+  	$viewPermissions = $1; 
+  }
+  if ( $content =~ s/<meta\s+name=\"$changePermissionsMetaName\"\s+content=\"([^\"]*)\"\s*\/?>(\s*<\/meta\s*>)?//i ) { 
+  	$changePermissions = $1; 
+  }
+  elsif ( $content =~ s/<meta\s+content=\"([^\"]*)\"\s+name=\"$changePermissionsMetaName\"\s*\/?>(\s*<\/meta\s*>)?//i ) { 
+  	$changePermissions = $1; 
+  }
+  $content =~ s/<meta\s+name=\"$viewPermissionsMetaName\"\s*\/?>(\s*<\/meta\s*>)?//gi;
+  $content =~ s/<meta\s+name=\"$changePermissionsMetaName\"\s*\/?>(\s*<\/meta\s*>)?//gi;
+  $content .= "\n\t* SETALLOWTOPICVIEW = $viewPermissions" if ( $viewPermissions );
+  $content .= "\n\t* SETALLOWTOPICCHANGE = $changePermissions" if ( $changePermissions );
+  # Return
   return $content;
 }
 
