@@ -1,0 +1,20 @@
+<html>
+<head>
+<title>MoveTopic Test</title>
+</head>
+<body>
+<h1>MoveTopic Test</h1>
+<form method="POST" action="http://localhost:8070/bin/service">
+<input type="hidden" name="method" value="moveTopic"/>
+<table>
+<tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
+<tr><td>Web:</td><td><input type="text" name="srcWeb" value=""/></td></tr>
+<tr><td>Topic:</td><td><input type="text" name="topic" value=""/></td></tr>
+<tr><td>Destination Web:</td><td><input type="text" name="dstWeb" value=""/></td></tr>
+<tr><td>New Parent Topic:</td><td><input type="text" name="parent" value=""/></td></tr>
+<tr><td>Update References ?</td><td><input type="checkbox" name="update"/></td></tr>
+<tr><td colspan="2" align="center"><input type="submit"/></td></tr>
+</table>
+</form>
+</body>
+</html>

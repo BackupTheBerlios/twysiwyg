@@ -6,11 +6,16 @@ BEGIN {
 
 use strict;
 use Service;
+use TWiki;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
 
-my $input = $ENV{ "QUERY_STRING" };
+my $query = new CGI;
+my $call = $query->param('method');
+
 my $response;
 my $length = 0;
-if ( $input eq "" ) {
+if ( $call eq "" ) {
 	# Print Trace
 	my $trace = "";
 	open( TRACE, "<$Service::trace_file" ) or $trace = "Failed to open trace file : $Service::trace_file";
@@ -29,59 +34,51 @@ if ( $input eq "" ) {
 	print "Status: 200 OK\nContent-type: text/html\nContent-length: $length\n\n$response";
 	
 } else {
-	# Services invokation
-	my @list = split( /&/, $input );
-	my ( $name, $value );
-	my $params = {};
-	foreach ( @list ) {
-		( $name, $value )= split( /=/, $_ );
-		$name =~   s/%(..)/pack("c",hex($1))/ge;
-	 	$value =~  s/%(..)/pack("c",hex($1))/ge;
-	 	# Update hash map
-		$params->{ $name } = $value;
-	}
 
 	# Service invokation test & dispatch
-	my $call = $params->{ 'method' };
 	my $content_type = "text/xml";
 	$response = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>";
 	if ( $call eq "connect" ) {
 		# Connection service
-		my ( $code, $timeout ) = &Service::Connection::connect( $params->{'usage'}, $params->{'login'}, $params->{'pass'} );
+		my ( $code, $timeout ) = &Service::Connection::connect( $query->param('usage'), $query->param('login'), $query->param('pass') );
 		my $messages = { -1 => 'Empty login', -2 => 'Maximum number of connections reached', 
 						 -3 => 'Authentication failed' };
 		if ( $code >= -3 && $code <= -1 ) { $response .= &make_message( $code, $messages->{$code} ); }
 		else { $response .= &make_connectioninfo( $code, $timeout ); }
 	} elsif ( $call eq "disconnect" ) {
-		my $code = &Service::Connection::disconnect( $params->{'key'} );
+		my $code = &Service::Connection::disconnect( $query->param('key') );
 		my $messages = { 0 => 'Disconnection failed', 1 => 'Disconnection OK' };
 		$response .= &make_message( $code, $messages->{$code} );
 	} elsif ( $call eq "ping" ) {
-		my $code = &Service::Connection::ping( $params->{'key'} );
-		my $messages .= { 0 => 'Ping failed', 1 => 'Ping OK' };
+		my $code = &Service::Connection::ping( $query->param('key') );
+		my $messages = { 0 => 'Ping failed', 1 => 'Ping OK' };
 		$response = &make_message( $code, $messages->{$code} );
 	} elsif ( $call eq "getUsers" ) {
 		$response .= &make_users( &Service::Connection::getUsers() );
 	} elsif ( $call eq "getTopicNames" ) {
-		my $web = $params->{'web'};
+		my $web = $query->param('web');
 		my ( $code, @list ) = &Service::Topics::getTopicNames( $web );
 		if ( $code == -1 ) { $response .= &make_message( $code, "Web $web doesn't exists" ); }
 		else { $response .= &make_topics_list( @list ); }
 	} elsif ( $call eq "getTopicContent" ) {
-		my ( $code, $text ) = &Service::Topics::getTopicContent( $params->{'key'}, $params->{'web'}, $params->{'topic'} );
+		my ( $code, $text ) = &Service::Topics::getTopicContent( $query->param('key'), $query->param('web'), $query->param('topic'), $query->param('readonly') );
 		my $messages = { -3 => "Topic already locked by $text", -2 => 'Connection required to invoke service', 
-						 -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
+						         -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
 		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
 		else { $response .= &make_topic( $text ); }
+	} elsif ( $call eq "getTopicProperties" ) {
+		my ( $code, $text ) = &Service::Topics::getTopicProperties( $query->param('key'), $query->param('web'), $query->param('topic') );
+		if ( $code == 0 ) { $response .= &make_message( $code, 'Connection required to invoke service' ); }
+		else { $response .= &make_topic_properties( $text ); }
 	} elsif ( $call eq "getTopicAttachment" ) {
-		my ( $code, $attachment ) = &Service::Topics::getTopicAttachment( $params->{'key'}, $params->{'web'}, $params->{'topic'}, $params->{'name'} );
+		my ( $code, $attachment ) = &Service::Topics::getTopicAttachment( $query->param('key'), $query->param('web'), $query->param('topic'), $query->param('name') );
 		my $messages = { -3 => "Attachment doesn't exists", -2 => 'Connection required to invoke service', 
 						 -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
 		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
 		else { $response .= &make_attachment( $attachment ); }
 	} elsif ( $call eq "lockTopic" ) {
-		my ( $code, $info ) = &Service::Topics::lockTopic( $params->{'key'}, $params->{'web'},
-						      							   $params->{'topic'}, $params->{'doUnlock'} );
+		my ( $code, $info ) = &Service::Topics::lockTopic( $query->param('key'), $query->param('web'),
+						      							   $query->param('topic'), $query->param('doUnlock') );
 		my $messages = { -1 => 'Existing topic required', -2 => 'Connection required to invoke service', 
 						 0 => "Operation failed, lock already put by $info", 1 => 'Operation succeded' };
 		$response .= &make_message( $code, $messages->{$code} );
@@ -93,6 +90,59 @@ if ( $input eq "" ) {
 		# TODO !
 	} elsif ( $call eq "renameTopicAttachment" ) {
 		# TODO !
+	} elsif ( $call eq "getChildTopics" ) {
+	  my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+		my ( $code, @list ) = &Service::Topics::getChildTopics( $web, $topic );
+		my $messages = { -2 => "Web $web doesn't exists", -1 => "Topic $topic doesn't exists"};
+		if ( $code >= -2 && $code < 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
+		else { $response .= &make_topics_list( @list ); }
+	} elsif ( $call eq "getWebs" ) {
+	  my $web = $query->param('web');
+	  my @list = &Service::Topics::getWebs( $web );
+	  $response .= &make_webs_list( @list );
+	} elsif ( $call eq "setAdminLock" ) {
+		my ( $code, $info ) = &Service::Connection::setAdminLock( $query->param('key'), $query->param('doUnlock') );
+		my $messages = { -2 => 'Connection required to invoke service', -1 => 'Admin status is required to control administrative lock',
+						          0 => "Operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"), 
+                      1 => 'Operation succeded' };
+		$response .= &make_message( $code, $messages->{$code} );
+	} elsif ( $call eq "renameTopic" ) {
+	  my $web = $query->param('web');
+	  my $topic = $query->param('topic');
+	  my $name = $query->param('name');
+	  my ( $code, $info ) = &Service::Refactoring::renameTopic( $query->param('key'), $web, $topic,
+                                                              $name, $query->param('update') );
+    my $messages = { 0 => "Rename operation succeeded",
+                     1 => 'Connection required to invoke service',
+                     2 => "Rename operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
+                     3 => "Topic $web.$topic doesn't exist",
+                     4 => "Topic $web.$name already exists",
+                     5 => "$name isn't a WikiWord",
+                     6 => 'Permissions denied',
+                     7 => "Unable to put lock on topic (already put by $info)",
+                     8 => "Rename error (code $info)"
+						       };
+		$response .= &make_message( $code, $messages->{$code} );
+	} elsif ( $call eq "moveTopic" ) {
+	  my $srcWeb = $query->param('srcWeb');
+	  my $topic = $query->param('topic');
+	  my $dstWeb = $query->param('dstWeb');
+	  my $parent = $query->param('parent');
+	  my ( $code, $info ) = &Service::Refactoring::moveTopic( $query->param('key'), $srcWeb, $topic,
+                                                            $dstWeb, $parent, $query->param('update') );
+    my $messages = { 0 => "Move operation succeeded",
+                     1 => 'Connection required to invoke service',
+                     2 => "Move operation failed, ".(( $info )?"administrative lock already put by $info":"no administrative lock put"),
+                     3 => "Topic $srcWeb.$topic doesn't exist",
+                     4 => "Topic $dstWeb.$parent doesn't exist",
+                     5 => 'Permissions denied',
+                     6 => "Unable to put lock on topic (already put by $info)",
+                     7 => "Topic $dstWeb.$topic already exists",
+                     8 => "Move error (code $info)",
+                     9 => "Parent change error (code $info)"
+						       };
+		$response .= &make_message( $code, $messages->{$code} );                                                     
 	} else {
 		$content_type = "text/html";
 		$response = "<h1>Unknown service invoked</h1>";
@@ -139,6 +189,16 @@ sub make_topics_list {
 	$response .= "</topics>";
 }
 
+# Create XML listing of webs
+sub make_webs_list {
+	my ( @list ) = @_;
+	my $response = "<webs>";
+	foreach ( @list ) {
+		$response .= "<web>$_</web>";
+	}
+	$response .= "</webs>";
+}
+
 # Create XML topic representation
 sub make_topic {
 	my ( $topic ) = @_;
@@ -151,9 +211,7 @@ sub make_topic {
 	my $content = $topic->{'content'};
 	my @attachments = @{$topic->{'attachments'}};
 	my $response = "<topicContent>";
-	$response .= "<web>$web</web><name>$name</name><author>$author</author> \
-				  <date>$date</date><format>$format</format><version>$version</version> \
-				  <content><![CDATA[$content]]></content>";
+	$response .= "<web>$web</web><name>$name</name><author>$author</author><date>$date</date><format>$format</format><version>$version</version><content><![CDATA[$content]]></content>";
 	$response .= "<attachments>";
 	foreach my $attachment ( @attachments ) {
     	# Retrieve properties
@@ -164,15 +222,36 @@ sub make_topic {
 	return $response;
 }
 
+# Create XML topic properties representation
+sub make_topic_properties {
+	my ( $topic ) = @_;
+	my $web = $topic->{'web'};
+	my $name = $topic->{'name'};
+	my $mainTopic = $topic->{'mainTopic'};
+	my $rperms = $topic->{'rename_permissions'};
+	my $cperms = $topic->{'change_permissions'};
+	my $vperms = $topic->{'view_permissions'};
+	my $locked = $topic->{'locked'};
+	my $author = $topic->{'author'};
+	my $c_date = $topic->{'cDate'};
+	my $m_date = $topic->{'mDate'};
+	my $format = $topic->{'format'};
+	my $version = $topic->{'version'};
+	my $response = "<topicProperties>";
+	$response .= "<web>$web</web><name>$name</name><mainTopic>$mainTopic</mainTopic><rename_permissions>$rperms</rename_permissions><change_permissions>$cperms</change_permissions><view_permissions>$vperms</view_permissions><locked>$locked</locked><author>$author</author><mdate>$m_date</mdate><cdate>$c_date</cdate><format>$format</format><version>$version</version>";
+	$response .= "</topicProperties>";
+	return $response;
+}
+
 # Create XML Base64 binary data of attachment
 sub make_attachment {
 	my ( $attachment ) = @_;
 	my $att_name 	= $attachment->{"name"};
-    my $att_version = $attachment->{"version"};
-    my $att_path    = $attachment->{"path"};
-    my $att_size    = $attachment->{"size"};
-    my $att_date    = localtime( $attachment->{"date"} );
-    my $att_user    = $attachment->{"user"};
+  my $att_version = $attachment->{"version"};
+  my $att_path    = $attachment->{"path"};
+  my $att_size    = $attachment->{"size"};
+  my $att_date    = localtime( $attachment->{"date"} );
+  my $att_user    = $attachment->{"user"};
 	my $att_comment = $attachment->{"comment"};
 	my $att_attr    = $attachment->{"attr"};
 	my $att_data    = $attachment->{"data"};

@@ -1,13 +1,14 @@
 <html>
 <head>
-<title>Disconnection Test</title>
+<title>SetAdminLock Test</title>
 </head>
 <body>
-<h1>Disconnection Test</h1>
+<h1>SetAdminLock Test</h1>
 <form method="POST" action="http://localhost:8070/bin/service">
-<input type="hidden" name="method" value="disconnect"/>
+<input type="hidden" name="method" value="setAdminLock"/>
 <table>
 <tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
+<tr><td>Unlock ?</td><td><input type="checkbox" name="doUnlock"/></td></tr>
 <tr><td colspan="2" align="center"><input type="submit"/></td></tr>
 </table>
 </form>

@@ -1,16 +1,17 @@
 <html>
 <head>
-<title>LockTopic Test</title>
+<title>RemoveTopic Test</title>
 </head>
 <body>
-<h1>LockTopic Test</h1>
+<h1>RemoveTopic Test</h1>
 <form method="POST" action="http://localhost:8070/bin/service">
-<input type="hidden" name="method" value="lockTopic"/>
+<input type="hidden" name="method" value="removeTopic"/>
 <table>
 <tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
 <tr><td>Web:</td><td><input type="text" name="web" value=""/></td></tr>
 <tr><td>Topic:</td><td><input type="text" name="topic" value=""/></td></tr>
-<tr><td>Unlock ?</td><td><input type="checkbox" name="doUnlock"/></td></tr>
+<tr><td>Option: <br/>2 : complete remove<br/>1 : delete topic in Trash if already exists<br/>0 : default</td><td><input type="text" name="option" value=""/></td></tr>
+<tr><td>Trash Name:</td><td><input type="text" name="trashname" value=""/></td></tr>
 <tr><td colspan="2" align="center"><input type="submit"/></td></tr>
 </table>
 </form>

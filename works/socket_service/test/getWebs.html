@@ -1,12 +1,13 @@
 <html>
 <head>
-<title>GetUsers Test</title>
+<title>GetWebs Test</title>
 </head>
 <body>
-<h1>GetUsers Test</h1>
+<h1>GetWebs Test</h1>
 <form method="POST" action="http://localhost:8070/bin/service">
-<input type="hidden" name="method" value="getUsers"/>
+<input type="hidden" name="method" value="getWebs"/>
 <table>
+<tr><td>Web: ("" = root)</td><td><input type="text" name="web" value=""/></td></tr>
 <tr><td colspan="2" align="center"><input type="submit"/></td></tr>
 </table>
 </form>

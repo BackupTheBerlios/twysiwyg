@@ -1,7 +1,7 @@
 package Service::Connection;
 
 # Service Connection Module
-# Author : Romain Raugi, based on Peter Thoeny's works for TWiki
+# Author : Romain Raugi
 
 use strict;
 
@@ -24,27 +24,29 @@ sub load {
 	# Read values and save them in hash
 	open(FILE, "<$Service::clients_file") or $failed = 1;
 	if ( ! $failed ) {
-    	my $date = time();
-    	while($line = <FILE>) {
-      		($key, $usage, $login, $cnx, $echo) = split/ /, $line, 5;
-      		# Delete last separator
-      		chomp $echo;
-      		# Check Timeouts
-      		if (($date - $echo) < $Service::timeout) {
-        		$clients_ref->{$key}{'LOGIN'} = $login;
-        		$clients_ref->{$key}{'USAGE'} = $usage;
-        		$clients_ref->{$key}{'CNX'} = $cnx;
-        		$clients_ref->{$key}{'ECHO'} = $echo;
-      		}
-      		else {
-        		# Unlock all put locks
-				&locks( $key, $login, 1 );
-      		}
-    	}
-    	close(FILE);
-  	}
-  	&Service::FLock::unlock( $lock );
-  	return $clients_ref;
+    my $date = time();
+    while($line = <FILE>) {
+      ($key, $usage, $login, $cnx, $echo) = split/ /, $line, 5;
+      # Delete last separator
+      chomp $echo;
+      # Check Timeouts
+      if (($date - $echo) < $Service::timeout) {
+        $clients_ref->{$key}{'LOGIN'} = $login;
+        $clients_ref->{$key}{'USAGE'} = $usage;
+        $clients_ref->{$key}{'CNX'} = $cnx;
+        $clients_ref->{$key}{'ECHO'} = $echo;
+      }
+      else {
+        # Unlock all put locks
+        &locks( $key, $login, 1 );
+        # Unlock admin lock
+        &Service::AdminLock::doUnlock( $key );
+      }
+    }
+    close(FILE);
+  }
+  &Service::FLock::unlock( $lock );
+  return $clients_ref;
 }
 
 sub save {
@@ -55,15 +57,15 @@ sub save {
 	open(FILE, ">$Service::clients_file") or $failed = 1;
  	if ( ! $failed ) {
 		for $key ( sort keys %$clients_ref ) {
-      		$usage = $clients_ref->{$key}{'USAGE'};
-      		$login = $clients_ref->{$key}{'LOGIN'};
-      		$cnx = $clients_ref->{$key}{'CNX'};
-      		$echo = $clients_ref->{$key}{'ECHO'};
-      		print FILE "$key $usage $login $cnx $echo\n";
-   		}
-    	close(FILE);
-  	}
-  	&Service::FLock::unlock( $lock );
+      $usage = $clients_ref->{$key}{'USAGE'};
+      $login = $clients_ref->{$key}{'LOGIN'};
+      $cnx = $clients_ref->{$key}{'CNX'};
+      $echo = $clients_ref->{$key}{'ECHO'};
+      print FILE "$key $usage $login $cnx $echo\n";
+    }
+    close(FILE);
+  }
+  &Service::FLock::unlock( $lock );
 }
 
 sub connect {
@@ -124,6 +126,8 @@ sub disconnect {
 		&save($clients);
 		# Unlock all put locks
 		&locks( $key, $login, 1 );
+		# Unlock admin lock
+    &Service::AdminLock::doUnlock( $key );
 		&Service::Trace::log( "Disconnection from $key OK" );
 		return 1;
 	}
@@ -143,6 +147,8 @@ sub ping {
 		&save($clients);
 		# Actualize all put locks
 		&locks( $key, $login );
+		my ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::checkAdminLock();
+    &Service::AdminLock::doLock( $key ) if ( $checkCode && ( $lockedKey eq $key ) && ( ( $echo - $lockedTime ) < $Service::timeout ) );
 		&Service::Trace::log( "Ping from $key OK" );
 		return 1;
 	}
@@ -151,7 +157,7 @@ sub ping {
 }
 
 sub getUsers {
-   	# Retrieve clients from data source
+  # Retrieve clients from data source
 	return load();
 }
 
@@ -217,13 +223,44 @@ sub initialize {
 	&TWiki::Store::initialize();
 	# Access control init
 	&TWiki::Access::initializeAccess();
-	# Initialize web name
-	$TWiki::webName = $web;
-	# Initialize topic name
-	$TWiki::topicName = $topic;
+	if ( $web && $topic ) {
+	   # Initialize web name
+	   $TWiki::webName = $web;
+	   # Initialize topic name
+	   $TWiki::topicName = $topic;
+	}
 	# Initialize TWiki userName var
-	$TWiki::userName = &TWiki::Plugins::initializeUser( $login );
+	&TWiki::initializeRemoteUser( &TWiki::userToWikiName( $login ) );
 	return $TWiki::userName;
 }
+
+# Put/Release Administrative Lock
+sub setAdminLock {
+  my ( $key, $doUnlock ) = @_;
+  my ( $checkCode, $lockedKey, $lockedTime );
+  # Retrieve login
+  my $login = &getLogin( $key );
+  return -2 if ( ! $login );
+  # TWiki init
+	&initialize( $login );
+  # Admin Group ?
+  #return -1 if ( ! TWiki::Access::userIsInGroup( &TWiki::userToWikiName( $login ), $TWiki::superAdminGroup ) );
+  # Check state wanted
+  if ( ! $doUnlock ) {
+    ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::doLock( $key );
+    if ( ! $checkCode ) {
+      &Service::Trace::log( "Administrative lock put by $login ($key)" );
+      return 1;
+    }
+  } else {
+    # Unlock (with concurrence management)
+    ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::doUnlock( $key );
+    if ( ! $checkCode ) {
+      &Service::Trace::log( "Administrative lock released by $login ($key)" );
+      return 1;
+    }
+  }
+  return ( 0, &getLogin( $lockedKey ), $lockedTime );
+};
 
 1;

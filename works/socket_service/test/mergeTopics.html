@@ -1,0 +1,23 @@
+<html>
+<head>
+<title>MergeTopics Test</title>
+</head>
+<body>
+<h1>MergeTopics Test</h1>
+<form method="POST" action="http://localhost:8070/bin/service">
+<input type="hidden" name="method" value="mergeTopics"/>
+<table>
+<tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
+<tr><td>Target Web:</td><td><input type="text" name="webTarget" value=""/></td></tr>
+<tr><td>Target Topic:</td><td><input type="text" name="topicTarget" value=""/></td></tr>
+<tr><td>Aux Web:</td><td><input type="text" name="webFrom" value=""/></td></tr>
+<tr><td>Aux Topic:</td><td><input type="text" name="topicFrom" value=""/></td></tr>
+<tr><td>Attachments ?</td><td><input type="checkbox" name="attachments"/></td></tr>
+<tr><td>Identify topics merged ?</td><td><input type="checkbox" name="identify"/></td></tr>
+<tr><td>Remove Option [0-3]:</td><td><input type="text" name="removeOption" value=""/></td></tr>
+<tr><td>Dont Notify ?</td><td><input type="checkbox" name="dontNotify"/></td></tr>
+<tr><td colspan="2" align="center"><input type="submit"/></td></tr>
+</table>
+</form>
+</body>
+</html>

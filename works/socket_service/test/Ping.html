@@ -4,10 +4,12 @@
 </head>
 <body>
 <h1>Ping Test</h1>
-<form method="GET" action="http://HOSTNAME/bin/service">
+<form method="POST" action="http://localhost:8070/bin/service">
 <input type="hidden" name="method" value="ping"/>
-<input type="text" name="key" value=""/>
-<input type="submit"/>
+<table>
+<tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
+<tr><td colspan="2" align="center"><input type="submit"/></td></tr>
+</table>
 </form>
 </body>
 </html>

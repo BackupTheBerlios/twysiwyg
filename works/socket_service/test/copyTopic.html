@@ -1,0 +1,21 @@
+<html>
+<head>
+<title>CopyTopic Test</title>
+</head>
+<body>
+<h1>CopyTopic Test</h1>
+<form method="POST" action="http://localhost:8070/bin/service">
+<input type="hidden" name="method" value="copyTopic"/>
+<table>
+<tr><td>Connection Key:</td><td><input type="text" name="key" value=""/></td></tr>
+<tr><td>Web:</td><td><input type="text" name="srcWeb" value=""/></td></tr>
+<tr><td>Topic:</td><td><input type="text" name="topic" value=""/></td></tr>
+<tr><td>Destination Web:</td><td><input type="text" name="dstWeb" value=""/></td></tr>
+<tr><td>New Name:</td><td><input type="text" name="name" value=""/></td></tr>
+<tr><td>New Topic Parent:</td><td><input type="text" name="parent" value=""/></td></tr>
+<tr><td>Attachments ?</td><td><input type="checkbox" name="attachments"/></td></tr>
+<tr><td colspan="2" align="center"><input type="submit"/></td></tr>
+</table>
+</form>
+</body>
+</html>
