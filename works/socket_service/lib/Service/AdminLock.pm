@@ -58,6 +58,8 @@ sub doUnlock {
   if ( $checkCode && ( $lockedKey eq $key ) ) {
     # Delete file
     unlink($Service::admin_lock_file);
+    # Delete undo files
+    &Service::Undo::erase();
     $failed = 0;
   }
   &Service::FLock::unlock($lock);

@@ -192,7 +192,6 @@ sub getChildTopics {
 	return -1 if ( ( $topic ) && ! &TWiki::Store::topicExists( $web, $topic ) );
 	# Retrieve topics
 	my @topicList = ();
-	my @allWebs = &TWiki::Store::getAllWebs();
   if ( $topic eq "" ) {
     # Search topics with no parents in this web
     @topicList = &grepTopics( "%META:TOPICPARENT", "$TWiki::dataDir\/$web\/*.txt", 1 );

@@ -127,7 +127,7 @@ sub disconnect {
 		# Unlock all put locks
 		&locks( $key, $login, 1 );
 		# Unlock admin lock
-    &Service::AdminLock::doUnlock( $key );
+        &Service::AdminLock::doUnlock( $key );
 		&Service::Trace::log( "Disconnection from $key OK" );
 		return 1;
 	}

@@ -37,11 +37,16 @@ sub renameTopic {
     return 6;
   }
   # Check if topic is locked
-  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic, 1 );
+  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic );
   if ( ! $lock ) {
     &Service::Trace::log( "Rename operation failed : unable to put lock on topic $web.$topic, already put by $lockUser" );
     return ( 7, $lockUser );
   }
+  # Undo preparation
+  &Service::Undo::newStep( $key );
+  my $archive = &Service::Undo::takeSnapshot( "$web.$topic" );
+  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
+  &Service::Undo::push( $key, "$Service::rmCmd -rf $TWiki::dataDir/$web/$name* $TWiki::pubDir/$web/$name" );
   # Rename
   my $rename_code = &TWiki::Store::renameTopic( $web, $topic, $web, $name, "relink" );
   if ( $rename_code ) { &Service::Trace::log( "Rename error : $rename_code" );return ( 8, $rename_code ); }
@@ -88,7 +93,7 @@ sub moveTopic {
     return 5;
   }
   # Check if topic is locked
-  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $srcWeb, $topic, 1 );
+  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $srcWeb, $topic );
   if ( ! $lock ) {
     &Service::Trace::log( "Move operation failed : unable to put lock on topic $srcWeb.$topic, already put by $lockUser" );
     return ( 6, $lockUser );
@@ -97,11 +102,18 @@ sub moveTopic {
   if ( $srcWeb ne $dstWeb ) {
     # Error case : topic existence in destination
     if ( &TWiki::Store::topicExists( $dstWeb, $topic ) ) { &Service::Trace::log( "Move operation failed : topic $dstWeb.$topic already exists" );return 7; }
+    # Undo preparation
+  	&Service::Undo::newStep( $key );
+  	my $archive = &Service::Undo::takeSnapshot( "$srcWeb.$topic" );
+  	&Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
+  	&Service::Undo::push( $key, "$Service::rmCmd -rf $TWiki::dataDir/$dstWeb/$topic* $TWiki::pubDir/$dstWeb/$topic" );
     # Move topic
     my $move_code = &moveTopicOutsideWeb( $srcWeb, $topic, $dstWeb );
     if ( $move_code ) { &Service::Trace::log( "Move error : $move_code" );return ( 8, $move_code ); }
   }
   # Change parent
+  my $archive = &Service::Undo::takeSnapshot( "$dstWeb.$parent" );
+  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
   my $change_code = &changeParent( $dstWeb, $topic, $parent );
   if ( $change_code ) { &Service::Trace::log( "Error during parent change : $change_code" );return ( 9, $change_code ); }
   # Update links that refers to
@@ -159,6 +171,14 @@ sub updateReferences {
     }
   }
   @topics = &searchTopics( $theSearchVal, @files ) if ( @files && $#files >= 0 );
+  # Prepare undo
+  my @snap = ();
+  foreach my $topic ( @topics ) {
+  	push @snap, $topic if ( $topic ne "$newWeb.$newTopic" );
+  }
+  my $archive = &Service::Undo::takeSnapshot( @snap );
+  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
+  # Update
   return &updateTopics( $key, $login, $oldWeb, $oldTopic, $newWeb, $newTopic, @topics ) if ( @topics && $#topics >= 0 );
 }
 
@@ -240,7 +260,7 @@ sub updateTopics {
     # Permissions check (change)
     if ( &Service::Topics::testAndGetTopic( $web, $topic, $login, 'change' ) ) {
       # Lock
-      my $lock = &Service::Topics::lock( $key, $login, $web, $topic, 1 );
+      my $lock = &Service::Topics::lock( $key, $login, $web, $topic );
       if ( $lock ) {
         push @updated_topics, "$web.$topic";
         # Get meta/text
@@ -270,7 +290,7 @@ sub updateTopics {
         # Save
         my $changeError = &TWiki::Store::saveTopic( $web, $topic, $text, $meta, $saveCmd, $unlock, $dontNotify );
         # Unlock
-        &Service::Topics::lock( $key, $login, $web, $topic );
+        &Service::Topics::lock( $key, $login, $web, $topic, 1 );
       }
     }
   }
@@ -312,7 +332,7 @@ sub removeTopic {
         return 7;
       }
       # Check if topic is locked
-      $trashLock = &Service::Topics::lock( $key, $login, 'Trash', $trashName, 1 );
+      $trashLock = &Service::Topics::lock( $key, $login, 'Trash', $trashName );
       if ( ! $trashLock ) {
         &Service::Trace::log( "Remove operation failed : topic Trash.$trashName already exists and is locked" );
         return 7;
@@ -320,7 +340,7 @@ sub removeTopic {
       # Erase topic completely
       &TWiki::Store::erase( 'Trash', $trashName );
       # Unlock
-      &Service::Topics::lock( $key, $login, 'Trash', $trashName );
+      &Service::Topics::lock( $key, $login, 'Trash', $trashName, 1 );
       return 0 if ( $web eq 'Trash' );
     }
     else {
@@ -347,7 +367,7 @@ sub removeTopic {
   if ( $option eq 2 ) {
     # Completely erase topic
     # Check if topic is locked
-    ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic, 1 );
+    ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic );
     if ( ! $lock ) {
       &Service::Trace::log( "Remove operation failed : unable to put lock on topic $web.$topic, already put by $lockUser" );
       return ( 5, $lockUser );
@@ -355,7 +375,7 @@ sub removeTopic {
     # Erase topic completely
     &TWiki::Store::erase( $web, $topic );
     # Unlock
-    &Service::Topics::lock( $key, $login, $web, $topic );
+    &Service::Topics::lock( $key, $login, $web, $topic, 1 );
     &Service::Trace::log( "Remove operation succeded" );
     return 0;
   }
@@ -365,7 +385,7 @@ sub removeTopic {
     return 6;
   }
   # Check if topic is locked
-  ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic, 1 );
+  ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $web, $topic );
   if ( ! $lock ) {
     &Service::Trace::log( "Remove operation failed : unable to put lock on topic $web.$topic, already put by $lockUser" );
     return ( 5, $lockUser );
@@ -431,7 +451,7 @@ sub mergeTopics {
     return 6;
   }
   # Check if topic is locked
-  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $webTarget, $topicTarget, 1 );
+  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $webTarget, $topicTarget );
   if ( ! $lock ) {
     &Service::Trace::log( "Merge operation failed : unable to put lock on topic $webTarget.$topicTarget, already put by $lockUser" );
     return ( 7, $lockUser );
@@ -512,7 +532,7 @@ sub copyTopic {
     return 7;
   }
   # Check if topic is locked
-  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $dstWeb, $newName, 1 );
+  my ( $lock, $lockUser ) = &Service::Topics::lock( $key, $login, $dstWeb, $newName );
   if ( ! $lock ) {
     &Service::Trace::log( "Copy operation failed : unable to put lock on topic $dstWeb.$newName, already put by $lockUser" );
     return ( 8, $lockUser );
@@ -572,6 +592,29 @@ sub copyAttachments {
                 $attrDate, $attrUser, $attrComment, $attrAttr, $meta2 ) if ( ! $copy_code );
   }
   return $meta2;
+}
+
+# Undo operation
+sub undo {
+  my ( $key ) = @_;
+  &Service::Trace::log( "Undo attempt by $key" );
+  # Retrieve login
+  my $login = &Service::Connection::getLogin($key);
+  if ( ! $login ) { &Service::Trace::log( "Undo operation failed : user $key not connected" );return 1; }
+  # Check administrative lock
+  my ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::checkAdminLock();
+  my $date = time();
+  if ( ( ! $checkCode ) || ( ( $lockedKey ne $key ) && ( ( $date - $lockedTime ) < $Service::timeout ) ) ) {
+    &Service::Trace::log( "Undo operation failed : administrative lock control failed, not put or put by another user ($lockedKey)" );
+    return ( 2, &Service::Connection::getLogin($lockedKey) );
+  }
+  # Pop
+  my @actions = &Service::Undo::pop();
+  foreach my $action (@actions) {
+  	#`$action`;
+  	#&Service::Trace::log( "Undo operation : $action" );
+  }
+  return &Service::Undo::count();
 }
 
 1;
