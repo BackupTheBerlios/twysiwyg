@@ -101,7 +101,7 @@ sub translate {
     # There is a particular syntax :
     if ( $icon ) {
       $icon =~ s/\/(.*)/$1/;
-      $content =~ s/<img\s+src=([\"\'])$host\/$icon\1[^>]*>/$syntax/gi;
+      $content =~ s/<img\s+src=([\"\'])$host\/$icon\1[^>]*>(\s*<\/img>)?/$syntax/gi;
     }
   }
   # Values correction
