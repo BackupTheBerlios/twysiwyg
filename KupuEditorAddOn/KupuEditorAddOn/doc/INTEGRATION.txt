@@ -1,0 +1,58 @@
+==================================
+KupuEditorAddOn package contains :
+==================================
+----------------------------------
+- a modified version of Kupu 1.1.1
+----------------------------------
+We kept from original Kupu package "common" and "doc" sub-directories. 
+On this, these features (and the mentioned files) have been removed :
+
+   * Experimental source (kupuinit_experimental.js)
+   * Multi-windowed edition (kupumultieditor.js, kupustart_multi.js, kupuinit_multi.js)
+   * Popups (kupupopups sub-directory)
+   * Drawers (kupudrawerstyle.css, kupudrawers.js, kupudrawers sub-directory)
+   * HTML Pages (fulldoc.html, kupu.html, kupuform.html, kupumulti.html)
+   * Some Docs (ZOPE2.txt, PLONE2.txt)
+   * Kupu common styles (kupustyles.css)
+
+We modified :
+
+   * kupu.css
+   * kupueditor.js
+   * kupuinit.js
+   * kupubasetools.js
+   * kupuimages/save.gif
+   * kupustyles.css renamed kuputwiki.css
+   
+We wrote source we modified in concerned source files. 
+
+We added to Kupu : 
+
+   * kuputwikitools.js
+   * kuputranslator.js
+   * kupuimages/smiley.gif
+   
+------------------------------------------------------------------------
+- a modified version of Frederic Luddeni's Java XHTML/TWikiML translator
+------------------------------------------------------------------------
+The package contains a JavaScript translated version of Frederic Luddeni's
+XHTML/TWikiML translator : kuputranslator.js. Modifications have been 
+mentioned in this file. Most of TWikiML to XHTML translator has been
+modified.
+     
+--------------------------------------------
+- Crawford Currie's contrib/plugin installer
+--------------------------------------------
+KupuEditorAddOn (un)installation is done via this.
+
+-----------
+- our works
+-----------
+   * bin/kupu*
+   * data/kupu*.cfg
+   * lib/TWiki/Contrib/KupuEditorAddOn.pm
+   * lib/TWiki/Contrib/KupuEditorAddOn/*.pm
+   * templates/kupu*.tmpl
+   * kuputwikitools.js
+
+Damien Mandrioli & Romain Raugi

@@ -1,0 +1,241 @@
+---+ <nop>%TOPIC% version 1.0b4
+
+Previously, we worked on Codev.TwysiwygEditor. This was an original approach of WYSIWYG editor integration based on Java Web Start and Web services. Unfortunately, despite Java Doc says " _The purpose of HTMLDocument model is to support both browsing and editing_ ", HTML Java API (1.4) was so buggy that we work now on a solution based on Kupu (http://kupu.oscom.org).
+
+Kupu is a <nop>JavaScript HTML editor compatible with Mozilla & IE. To save content of topic from HTML to TWiki syntax, we use a <nop>JavaScript modified version of the translator written in Java by Frederic Luddeni.
+
+%TOC%
+
+CVS : [[http://developer.berlios.de/projects/twysiwyg][Berlios]]
+
+---+ Features
+
+	* [[http://kupu.oscom.org][Kupu]] XHTML WYSIWYG Editor 1.1.1 %U%
+	* !TWikiML source edition %N%
+	* TWiki variables are rendered in green boxes
+	* Internal links are rendered in blue boxes
+	* List of already existing topics for links insertion
+	* Attachments management is embedded in topic edition
+	* Attachment reference insertion done by a click (image are shown, other files appears as links)
+	* Extensible icons insertion browser
+	* TWiki variables insertion facilities
+	* Catch automatically !WikiWords and !InterWiki links %N%
+	* Completion during !WikiWords (or !InterWiki links) insertion %N%
+
+---+ Screenshots
+
+<img src="%ATTACHURLPATH%/capture1.JPG" alt="capture2.JPG"  width="752" height="506"  />
+
+<img src="%ATTACHURLPATH%/capture2.JPG" alt="capture2.JPG"  width="752" height="506"  />
+
+---+ Prerequisites
+
+	* TWiki Cairo+
+	* Perl 5.6+
+
+---+ Installation
+
+	* Download the ZIP file (see below)
+	* Unzip ==%TOPIC%.zip== in your twiki installation directory. Content:
+  
+     | *File:* | *Description:* |
+     |==bin/kupuedit==| %TOPIC% host script |
+     |==bin/kupu_attachments==| attachments management script |
+     |==bin/kupu_html2twiki==| XHTML page open script |
+     |==bin/kupu_twiki2html==| topic save script |
+     |==data/kupu_imgmap.cfg==| icons configuration file |
+     |==data/kupu_varmap.cfg==| variables configuration file |
+     |==data/TWiki/%TOPIC%.txt==| this topic |
+     |==%TOPIC%/doc/INTEGRATION.txt==| notes about integration of Kupu |
+     |==%TOPIC%/doc/kupu/CHANGES.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/CONTRIBUTING.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/CREDITS.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/CUSTOMIZING.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/EXTENDING.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/FAQ.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/INSTALL.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/JSAPI.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/LIBRARIES.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/LICENSE.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/OLDBROWSERS.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/README.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/ROADMAP.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/STYLEGUIDE.txt==| Kupu notes |
+     |==%TOPIC%/doc/kupu/TEMPLATE-SYSTEM.txt==| Kupu notes |
+     |==%TOPIC%/doc/LICENSE.txt==| GPL license |
+     |==lib/TWiki/Contrib/%TOPIC%/build.pl==| |
+     |==lib/TWiki/Contrib/%TOPIC%/Html2TWiki.pm==| %TOPIC% XHTML open module |
+     |==lib/TWiki/Contrib/%TOPIC%/TWiki2Html.pm==| %TOPIC% topic save module |
+     |==lib/TWiki/Contrib/%TOPIC%/UI.pm==| %TOPIC% user interface module |
+     |==lib/TWiki/Contrib/%TOPIC%.pm==| %TOPIC% main module |
+     |==pub/TWiki/%TOPIC%/capture1.JPG==| screenshot |
+     |==pub/TWiki/%TOPIC%/capture2.JPG==| screenshot |
+     |==pub/_kupu/kupubasetools.js==| Kupu program |
+     |==pub/_kupu/kupucontentfilters.js==| Kupu program |
+     |==pub/_kupu/kupucontextmenu.js==| Kupu program |
+     |==pub/_kupu/kupueditor.js==| Kupu program |
+     |==pub/_kupu/kupuhelpers.js==| Kupu program |
+     |==pub/_kupu/kupuimages/bgcolor.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/bold.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/centre.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/definitionlist.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/definitionlist.png==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/exit.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/hr.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/hyperlink.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/image.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/indent.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/italic.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/kupusearch_icon.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/kupu_icon.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/left_just.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/list.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/numbered.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/outdent.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/redo.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/remove.png==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/right_just.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/save.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/smiley.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/source.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/space.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/subscript.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/superscript.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/table.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/textcolor.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/toolbox.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/underline.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuimages/undo.gif==| Kupu toolbar icon |
+     |==pub/_kupu/kupuinit.js==| Kupu program |
+     |==pub/_kupu/kupuinit_form.js==| Kupu program |
+     |==pub/_kupu/kupuinspector.js==| Kupu program |
+     |==pub/_kupu/kupuloggers.js==| Kupu program |
+     |==pub/_kupu/kupusaveonpart.js==| Kupu program |
+     |==pub/_kupu/kupusourceedit.js==| Kupu program |
+     |==pub/_kupu/kupustart.js==| Kupu program |
+     |==pub/_kupu/kupustart_form.js==| Kupu program |
+     |==pub/_kupu/kuputranslator.js==| XHTML/<nop>TWikiML translator |
+     |==pub/_kupu/kuputwiki.css==| %TOPIC% CSS classes |
+     |==pub/_kupu/kuputwikitools.js==| TWiki dedicated functions |
+     |==pub/_kupu/sarissa.js==| Kupu program |
+     |==templates/kupu.tmpl==| %TOPIC% main template |
+     |==templates/kupuedit.dragon.tmpl==| Dragon skin template |
+     |==templates/kupuedit.pattern.tmpl==| Pattern skin template |
+     |==templates/kupuedit.tmpl==| Classic skin template |
+
+---++ Perl installation procedure
+	
+<verbatim>
+cd <TWIKI_ROOT_DIR>
+perl KupuEditorAddOn_installer.pl install
+</verbatim>
+
+It will automatically set up permissions.
+
+---++ Perl scripts' shebang
+
+If Perl is not located in /usr/bin/perl or if you use !ActivePerl for Windows for example,
+you must modify =bin= scripts shebangs. Here are the concerned scripts :
+
+<verbatim>
+bin/kupu_attachments
+bin/kupu_html2twiki
+bin/kupu_twiki2html
+bin/kupuedit
+</verbatim>
+
+---++ htaccess management
+	
+Modify .htaccess to add authorizations for =kupuedit=, =kupu_attachments=, =kupu_twiki2html= and =kupu_html2twiki= scripts.
+
+---++ Charset
+
+If you want to use a charset different than ISO-8859-1 'latin1' or UTF-8, you must have Perl 5.8 installed
+or you have to install =Unicode::MapUTF8=.
+
+---++ Modifying 'viewing' TWiki template
+	
+Modify TWiki templates to add a 'Kupu Edit' link in your pages.
+TWiki templates can be very differents, here is an example of line to add in your .tmpl files :
+<verbatim>
+<a href="%SCRIPTURLPATH%/kupuedit%SCRIPTSUFFIX%/%WEB%/%TOPIC%">Kupu Edit</a>
+</verbatim>
+
+---++ Uninstalling
+
+<verbatim>
+cd <TWIKI_ROOT_DIR>
+perl KupuEditorAddOn_installer.pl uninstall
+</verbatim>
+
+---+ Customisation
+
+---++ Topic names loaded in Kupu
+
+Delete line <code>%KUPU{"ALLTOPICS"}%</code> (151) in =kupu.tmpl= template to avoid retrieving all topics in all webs. !InterWiki links' completion will be affected.
+
+---++ Extending variables list in Kupu
+
+Edit =data/kupu_varmap.cfg= and add variables according to this syntax :
+<verbatim>
+var description
+</verbatim>
+The first space is the separator.
+
+---++ Extending TWiki icons in Kupu
+
+In the same way as variables, edit =data/kupu_imgmap.cfg= and add icons according to this syntax :
+<verbatim>
+characters location
+</verbatim>
+This will catch corresponding strings and display the icon instead.
+The icons panel in Kupu will display new icons too. The first space is the separator.
+
+---++ Enabling/disabling tools
+
+There are in =pub/_kupu/= CSS classes of %TOPIC% (=kuputwiki.css=). You can make some of Kupu intials tools enabled
+if you remove =display:none= instructions.
+
+---+ Notes
+
+---++ Avoiding <nop>WikiWord being catched
+
+Put =!= behind !WikiWord or !InterWiki link to avoid it being catched.
+
+---++ Links completion
+
+During link completion, press =->= to go to the end of the completed word.
+
+---++ Variables edition
+
+In Mozilla, to edit after a variable on the same line, press =Enter= in the variable's green box.
+
+---++ Source edition
+
+You can save the !TWikiML source you are editing. It can be useful if XHML/<nop>TWikiML translation doesn't give the result you expected.
+
+---++ HTML Tables translation
+
+You will probably see that some tables are not translated during XHTML/<nop>TWikiML translation.
+This is the case if there are bullets, line jumps or inner tables inside.
+
+---++ <nop>TWikiML to HTML translation
+
+Some elements are not translated yet. Code styled texts, "nops", verbatim blocks and definitions lists are not managed.
+
+---+ Add-On Info
+
+|  Add-on Author: | TWiki:Main.DamienMandrioli & TWiki:Main.RomainRaugi |
+|  Add-on Version: | 07 Oct 2004 (v1.000) |
+|  Change History: | &nbsp; |
+|  10 Oct 2004: | 1.0b4 version |
+|  09 Sep 2004: | Initial version |
+|  CPAN Dependencies: | ??? |
+|  Other Dependencies: | ??? |
+|  Perl Version: | 5.6+ |
+|  License: | GPL |
+|  Add-on Home: | http://TWiki.org/cgi-bin/view/Plugins/%TOPIC% |
+|  Feedback: | http://TWiki.org/cgi-bin/view/Plugins/%TOPIC%Dev |
+
+__Related Topic:__ %TWIKIWEB%.TWikiAddOns
+

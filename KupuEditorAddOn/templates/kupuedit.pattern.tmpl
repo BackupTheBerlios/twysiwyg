@@ -1,0 +1,52 @@
+%TMPL:INCLUDE{"twiki"}%
+%TMPL:INCLUDE{"kupu"}%
+
+%TMPL:DEF{"head"}%
+<head>
+<title>%TMPL:P{"titleaction"}%%TOPIC% %TMPL:P{"titlesep"}% %WEB% %TMPL:P{"titlesep"}% %WIKITOOLNAME%</title>
+<meta http-equiv="Content-Type" content="text/html; charset=%CHARSET%" />
+<meta name="robots" content="noindex" />
+%HTTP_EQUIV_ON_VIEW%
+<base href="%SCRIPTURL%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%"/>
+%TMPL:P{"twikistyle"}%
+%TMPL:P{"templatecustomstyle"}%
+<style type="text/css" media="all">
+.twikiKupuContainer {
+  padding:0 3.5em;
+  background-color:white;
+  border-width:1px;
+  border-style:solid;
+  border-color:#ddd #ddd #ddd #ddd;
+}
+</style>
+%TMPL:P{"kupuscripts"}%
+</head>
+%TMPL:END%
+
+%TMPL:DEF{"simpleheader"}%
+---+ <nop>%TOPIC% (edit)
+%BR%%TMPL:END%
+
+%TMPL:DEF{"content"}%
+%TMPL:P{"simpleheader"}%
+%TMPL:P{"kupu"}%
+<div class="twikiFormHolder">
+<form name="main" action="%SCRIPTURLPATH%/save%SCRIPTSUFFIX%/%WEB%/%TOPIC%" method="post">
+%TMPL:P{"topicaction"}%
+</form>
+</div>
+%TMPL:END%
+
+%TMPL:DEF{"topicaction"}%
+<table class="twikiTopicAction">
+<tr class="twikiTopicAction">
+<td class="twikiCancelCol"><a id="cancel" href="%SCRIPTURLPATH%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%?unlock=on" accesskey="c">Cancel</a></td>
+</tr>
+</table>
+%TMPL:END%
+
+%TMPL:P{"htmldoctype"}%
+%TMPL:P{"head"}%
+%TMPL:P{"kupubodystart"}%
+%TMPL:P{"main"}%
+%TMPL:P{"bodyend"}%

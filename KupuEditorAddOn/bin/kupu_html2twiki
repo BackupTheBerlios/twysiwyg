@@ -1,0 +1,91 @@
+#!/usr/bin/perl -wT
+#
+# TWiki KupuEditorAddOn add-on for TWiki
+# Copyright (C) 2004 Damien Mandrioli and Romain Raugi
+# 
+# Based on parts of TWiki.
+# Copyright (C) 1999-2004 Peter Thoeny, peter@thoeny.com
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+
+BEGIN {
+    # Set default current working directory (needed for mod_perl)
+    if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
+      chdir $1;
+    }
+    # Set library paths in @INC, at compile time
+    unshift @INC, '.';
+    require 'setlib.cfg';
+}
+
+use strict;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
+use TWiki;
+use TWiki::Contrib::KupuEditorAddOn::Html2TWiki;
+
+my $query = new CGI;
+my $thePathInfo = $query->path_info();
+my $parameters = $query->path_info();
+my ( $web, $topic );
+$parameters =~ s/\///;
+if ( $parameters =~ m/(.*)\/(.*)/ ) {
+  $web = $1;
+  $topic = $2;
+} 
+my $theRemoteUser = $query->remote_user();
+my $theTopic = $query->param( 'topic' );
+my $theUrl = $query->url;       
+     
+# Retrieve topic
+my $topicContent = "";           
+if ($ENV{'REQUEST_METHOD'} eq "PUT") {
+  my $clength = $ENV{'CONTENT_LENGTH'};
+  my $toread = $clength;
+  my $data;
+  my $nread = 0;
+  while ($toread > 0)
+  {
+    $nread = read(STDIN, $data, $clength);
+    last if !defined($nread);
+    $toread -= $nread;
+    $topicContent = $data;
+  }
+}
+
+# Translation
+$topicContent = &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::translate( $web, $topic, $topicContent );
+
+# Twiki Initialisation
+my $unlock = 1;
+my $dontNotify = 0;
+my $saveCmd = "";
+my ( $topicName, $webName, $scriptUrlPath, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser,
+                     $theTopic, $theUrl, $query );
+
+# Tests & Save Topic
+my $wikiUserName = &TWiki::userToWikiName( $userName );
+my ( $meta, $temp ) = &TWiki::Store::readTopic( $webName, $topicName );
+if ( &TWiki::Store::topicExists( $webName, $topicName ) 
+     && &TWiki::Access::checkAccessPermission( "change", $wikiUserName, $temp, $topicName, $webName ) ) {
+  # Encoding management
+  $topicContent = &TWiki::Contrib::KupuEditorAddOn::Html2TWiki::convertUtf8toSiteCharset( $topicContent );
+  my $error = &TWiki::Store::saveTopic( $webName, $topicName, $topicContent, $meta, $saveCmd, $unlock, $dontNotify );
+  if ( ! $error ) {
+    TWiki::writeHeader( $query );
+    print "";
+  } else {
+    print "Status: 400 Bad Request\nContent-type: text/html\n\n";
+  }
+} else {
+  print "Status: 400 Bad Request\nContent-type: text/html\n\n";
+}
