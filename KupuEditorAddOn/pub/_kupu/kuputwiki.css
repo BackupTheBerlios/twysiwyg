@@ -10,7 +10,7 @@
  *
  *****************************************************************************/
 
-/* $Id: kuputwiki.css,v 1.2 2004/10/30 18:21:46 romano Exp $ */
+/* $Id: kuputwiki.css,v 1.3 2005/01/09 15:14:23 romano Exp $ */
 
 /*****************************************************************************
  * 
@@ -103,7 +103,7 @@ div.kupu-fulleditor button:active, input.submit:active {
 .kupu-save {background-image: url("kupuimages/save.gif");background-color: #CCCCCC;}
 .kupu-save-and-exit {background-image: url("kupuimages/exit.gif");background-color: #CCCCCC;}
 .kupu-space {background-image: url("kupuimages/space.gif");background-color: #CCCCCC;}
-.kupu-source {background-image: url("kupuimages/source.gif");background-color: #CCCCCC;}
+.kupu-source {background-image: url("kupuimages/source.gif");background-color: #CCCCCC;display:none;}
 .kupu-subscript {background-image: url("kupuimages/subscript.gif");background-color: #CCCCCC;display:none;}
 .kupu-subscript-pressed {background-image: url("kupuimages/subscript.gif"); background-color: white;display:none;}
 .kupu-superscript {background-image: url("kupuimages/superscript.gif");background-color: #CCCCCC;display:none;}
