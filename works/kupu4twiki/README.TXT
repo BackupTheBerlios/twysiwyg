@@ -50,11 +50,13 @@ Install Kupu For TWiki
       
 2. Run installation script with the command : perl install.pl
    NB : Under Windows, launch script from cygwin
+
+3. Modify /<twikidir>/lib/kupu.cfg to parameter kupu location.
    
-3. Modify TWiki templates to add a 'Kupu Edit' link in your pages.
+4. Modify TWiki templates to add a 'Kupu Edit' link in your pages.
    TWiki templates can be very differents, here is an example of line to add in your
    .tmpl files :
    <a href="%SCRIPTURLPATH%/kupuedit%SCRIPTSUFFIX%/%WEB%/%TOPIC%">Kupu Edit</a>
 
-4. Modify .htaccess to add authorizations for kupuedit, twiki2html and html2twiki scripts.
+5. Modify .htaccess to add authorizations for kupuedit, twiki2html and html2twiki scripts.
    
