@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<library>
+  <!--JBuilder Library Definition File-->
+  <fullname>TIDY</fullname>
+  <class>
+    <path>[lib/Tidy.jar]</path>
+  </class>
+  <lastmodsaved>1084709114406</lastmodsaved>
+</library>

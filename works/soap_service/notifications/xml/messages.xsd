@@ -1,0 +1,71 @@
+<?xml version="1.0"?>
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+  <xsd:element name="Message">
+  <xsd:complexType>
+    <xsd:sequence>
+      <xsd:element name="type" type="xsd:int"/>
+      <xsd:element name="issuer">
+        <xsd:complexType>
+          <xsd:sequence>
+            <xsd:element name="login" type="xsd:string"/>
+            <xsd:element name="address" minOccurs="0" maxOccurs="1">
+              <xsd:complexType>
+                <xsd:sequence>
+                  <xsd:element name="ip" type="xsd:string"/>
+                  <xsd:element name="port" type="xsd:int"/>
+                </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:sequence>
+        </xsd:complexType>
+      </xsd:element>
+      <xsd:element name="text" type="xsd:string"/>
+      <xsd:element name="event" minOccurs="0" maxOccurs="1">
+        <xsd:complexType>
+          <xsd:choice>
+            <xsd:element name="connectionEvent">
+              <xsd:complexType>
+      	        <xsd:sequence>
+      	          <xsd:element name="connected" type="xsd:boolean"/>
+      	        </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="lockEvent">
+              <xsd:complexType>
+      	        <xsd:sequence>
+      	          <xsd:element name="locked" type="xsd:boolean"/>
+      	          <xsd:element name="lock" type="xsd:string"/>
+      	        </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="refactoringEvent">
+              <xsd:complexType>
+      	        <xsd:sequence>
+      	          <xsd:element name="oldWeb" type="xsd:string"/>
+      	          <xsd:element name="oldName" type="xsd:string"/>
+      	          <xsd:element name="oldParent" type="xsd:string"/>
+      	          <xsd:element name="newWeb" type="xsd:string"/>
+      	          <xsd:element name="newName" type="xsd:string"/>
+      	          <xsd:element name="newParent" type="xsd:string"/>
+      	          <xsd:element name="operation" type="xsd:string"/>
+      	        </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="topicEvent">
+              <xsd:complexType>
+      	        <xsd:sequence>
+      	          <xsd:element name="web" type="xsd:string"/>
+      	          <xsd:element name="name" type="xsd:string"/>
+      	          <xsd:element name="operation" type="xsd:string"/>
+      	        </xsd:sequence>
+              </xsd:complexType>
+            </xsd:element>
+          </xsd:choice>
+        </xsd:complexType>
+      </xsd:element>
+    </xsd:sequence>
+  </xsd:complexType>
+  </xsd:element>
+
+</xsd:schema>

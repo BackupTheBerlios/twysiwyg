@@ -1,0 +1,30 @@
+#!/usr/bin/perl -wT
+
+BEGIN {
+    # Set default current working directory
+    if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
+        chdir $1;
+    }
+    # Set library paths in @INC at compile time
+    unshift @INC, '.';
+    require 'setlib.cfg';
+}
+
+use strict;
+use CGI::Carp qw(fatalsToBrowser);
+use CGI;
+use Kupu::UI;
+
+my $query = new CGI;
+
+my $thePathInfo = $query->path_info(); 
+my $theRemoteUser = $query->remote_user();
+my $theUrl = $query->url;
+my $theTopic = $query->param( 'topic' ) || "";
+
+my( $topic, $webName, $dummy, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser, $theTopic,
+                     $theUrl, $query );
+$dummy = "";  # to suppress warning
+
+Kupu::UI::kupuedit( $webName, $topic, $userName, $query );

@@ -1,0 +1,1 @@
+A Java package to receive services' notifications.

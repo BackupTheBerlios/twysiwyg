@@ -1,0 +1,633 @@
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:tns="http://twikiservice.unice.fr" xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:mime="http://schemas.xmlsoap.org/wsdl/mime/" xmlns="http://schemas.xmlsoap.org/wsdl/" targetNamespace="http://twikiservice.unice.fr" soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" name="service">
+	<wsdl:types>
+		<xsd:schema targetNamespace="http://twikiservice.unice.fr" xmlns="http://twikiservice.unice.fr">
+			<xsd:complexType name="ConnectionInfo">
+				<xsd:sequence>
+					<xsd:element name="key" type="xsd:int"/>
+					<xsd:element name="timeout" type="xsd:int"/>
+					<xsd:element name="subwebs" type="xsd:boolean"/>
+					<xsd:element name="adminLock" type="xsd:boolean"/>
+					<xsd:element name="locksActualization" type="xsd:boolean"/>
+					<xsd:element name="completeRemoveAllowed" type="xsd:boolean"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="User">
+				<xsd:sequence>
+					<xsd:element name="usage" type="xsd:string"/>
+					<xsd:element name="login" type="xsd:string"/>
+					<xsd:element name="connection" type="xsd:dateTime"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfUsers">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="tns:User[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="Properties">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="listeElement">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="listeTopic">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="WebTopic">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="Topic">
+				<xsd:sequence>
+					<xsd:element name="web" type="xsd:string"/>
+					<xsd:element name="name" type="xsd:string"/>
+					<xsd:element name="author" type="xsd:string"/>
+					<xsd:element name="date" type="xsd:int"/>
+					<xsd:element name="format" type="xsd:string"/>
+					<xsd:element name="version" type="xsd:string"/>
+					<xsd:element name="parent" type="xsd:string"/>
+					<xsd:element name="data" type="xsd:string"/>
+					<xsd:element name="attachments" type="tns:ArrayOfAttachments"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="Attachment">
+				<xsd:sequence>
+					<xsd:element name="name" type="xsd:string"/>
+					<xsd:element name="attr" type="xsd:string"/>
+					<xsd:element name="comment" type="xsd:string"/>
+					<xsd:element name="date" type="xsd:int"/>
+					<xsd:element name="size" type="xsd:int"/>
+					<xsd:element name="path" type="xsd:string"/>
+					<xsd:element name="user" type="xsd:string"/>
+					<xsd:element name="version" type="xsd:string"/>
+					<xsd:element name="content" type="xsd:base64Binary"/>
+				</xsd:sequence>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfAttachments">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="tns:Attachment[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="ArrayOfWebs">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+			<xsd:complexType name="listeAttach">
+				<xsd:complexContent>
+					<xsd:restriction base="soapenc:Array">
+						<xsd:attribute ref="soapenc:arrayType" wsdl:arrayType="xsd:string[]"/>
+					</xsd:restriction>
+				</xsd:complexContent>
+			</xsd:complexType>
+		</xsd:schema>
+	</wsdl:types>
+	<wsdl:message name="connectRequest">
+		<wsdl:part name="usage" type="xsd:string"/>
+		<wsdl:part name="username" type="xsd:string"/>
+		<wsdl:part name="password" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="connectResponse">
+		<wsdl:part name="info" type="tns:ConnectionInfo"/>
+	</wsdl:message>
+	<wsdl:message name="getUsersRequest"/>
+	<wsdl:message name="getUsersResponse">
+		<wsdl:part name="users" type="tns:ArrayOfUsers"/>
+	</wsdl:message>
+	<wsdl:message name="disconnectRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="disconnectResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="pingRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="pingResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="subscribeRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="port" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="subscribeResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="removeSubscriptionRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="removeSubscriptionResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="getWebsRequest">
+		<wsdl:part name="root" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="getWebsResponse">
+		<wsdl:part name="response" type="tns:ArrayOfWebs"/>
+	</wsdl:message>
+	<wsdl:message name="renameTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="web" type="xsd:string"/>
+		<wsdl:part name="topic" type="xsd:string"/>
+		<wsdl:part name="name" type="xsd:string"/>
+		<wsdl:part name="update" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="renameTopicResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="lockTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="web" type="xsd:string"/>
+		<wsdl:part name="topic" type="xsd:string"/>
+		<wsdl:part name="doLock" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="lockTopicResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="moveTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="oldWeb" type="xsd:string"/>
+		<wsdl:part name="topic" type="xsd:string"/>
+		<wsdl:part name="newWeb" type="xsd:string"/>
+		<wsdl:part name="newParent" type="xsd:string"/>
+		<wsdl:part name="update" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="moveTopicResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="removeTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="web" type="xsd:string"/>
+		<wsdl:part name="topic" type="xsd:string"/>
+		<wsdl:part name="option" type="xsd:int"/>
+		<wsdl:part name="trashName" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="removeTopicResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="mergeTopicsRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="webTarget" type="xsd:string"/>
+		<wsdl:part name="topicTarget" type="xsd:string"/>
+		<wsdl:part name="webFrom" type="xsd:string"/>
+		<wsdl:part name="topicFrom" type="xsd:string"/>
+		<wsdl:part name="attachments" type="xsd:boolean"/>
+		<wsdl:part name="identify" type="xsd:boolean"/>
+		<wsdl:part name="removeOption" type="xsd:int"/>
+		<wsdl:part name="dontNotify" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="mergeTopicsResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="copyTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="srcWeb" type="xsd:string"/>
+		<wsdl:part name="topic" type="xsd:string"/>
+		<wsdl:part name="dstWeb" type="xsd:string"/>
+		<wsdl:part name="newName" type="xsd:string"/>
+		<wsdl:part name="parent" type="xsd:string"/>
+		<wsdl:part name="attachments" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="copyTopicResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="setTopicRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="topic" type="tns:Topic"/>
+		<wsdl:part name="doKeep" type="xsd:boolean"/>
+		<wsdl:part name="doUnlock" type="xsd:boolean"/>
+		<wsdl:part name="dontNotify" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="setTopicResponse">
+		<wsdl:part name="response" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="setAdminLockRequest">
+		<wsdl:part name="key" type="xsd:int"/>
+		<wsdl:part name="doLock" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="setAdminLockResponse">
+		<wsdl:part name="response" type="xsd:boolean"/>
+	</wsdl:message>
+	<wsdl:message name="listeTopics">
+		<wsdl:part name="listeTop" type="tns:listeTopic"/>
+	</wsdl:message>
+	<wsdl:message name="listeElements">
+		<wsdl:part name="listeElem" type="tns:listeElement"/>
+	</wsdl:message>
+	<wsdl:message name="property">
+		<wsdl:part name="proprietetopic" type="tns:Properties"/>
+	</wsdl:message>
+	<wsdl:message name="chaine">
+		<wsdl:part name="path" type="xsd:string"/>
+		<wsdl:part name="chainekey" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="web">
+		<wsdl:part name="chaineweb" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="topic">
+		<wsdl:part name="chainetopic" type="xsd:string"/>
+		<wsdl:part name="topickey" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="taille">
+		<wsdl:part name="size" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="name">
+		<wsdl:part name="nameTopic" type="xsd:string"/>
+		<wsdl:part name="nameWeb" type="xsd:string"/>
+		<wsdl:part name="namekey" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="hellop">
+		<wsdl:part name="sHellop" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="hellor">
+		<wsdl:part name="sHellor" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="topicpath">
+		<wsdl:part name="topicpa" type="xsd:string"/>
+		<wsdl:part name="pathkey" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="topicproperties">
+		<wsdl:part name="topicpro" type="tns:Topic"/>
+	</wsdl:message>
+	<wsdl:message name="propertyattach">
+		<wsdl:part name="attachpp" type="xsd:string"/>
+		<wsdl:part name="attachpf" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="propertiesattach">
+		<wsdl:part name="propatt" type="tns:Attachment"/>
+	</wsdl:message>
+	<wsdl:message name="attachpathliste">
+		<wsdl:part name="attachpl" type="xsd:string"/>
+		<wsdl:part name="attahkey" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="listeattachement">
+		<wsdl:part name="listeatt" type="tns:listeAttach"/>
+	</wsdl:message>
+	<wsdl:message name="allTopic">
+		<wsdl:part name="alltopweb" type="tns:WebTopic"/>
+	</wsdl:message>
+	<wsdl:message name="allkey">
+		<wsdl:part name="allkeytopic" type="xsd:int"/>
+	</wsdl:message>
+	<wsdl:message name="html">
+		<wsdl:part name="htmltolat" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:message name="latex">
+		<wsdl:part name="lattohtml" type="xsd:string"/>
+	</wsdl:message>
+	<wsdl:portType name="ServicePortType">
+		<wsdl:operation name="connect">
+			<input message="tns:connectRequest"/>
+			<output message="tns:connectResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="getUsers">
+			<input message="tns:getUsersRequest"/>
+			<output message="tns:getUsersResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="disconnect">
+			<input message="tns:disconnectRequest"/>
+			<output message="tns:disconnectResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="subscribe">
+			<input message="tns:subscribeRequest"/>
+			<output message="tns:subscribeResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="removeSubscription">
+			<input message="tns:removeSubscriptionRequest"/>
+			<output message="tns:removeSubscriptionResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="getWebs">
+			<input message="tns:getWebsRequest"/>
+			<output message="tns:getWebsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="ping">
+			<input message="tns:pingRequest"/>
+			<output message="tns:pingResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="renameTopic">
+			<input message="tns:renameTopicRequest"/>
+			<output message="tns:renameTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="lockTopic">
+			<input message="tns:lockTopicRequest"/>
+			<output message="tns:lockTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="moveTopic">
+			<input message="tns:moveTopicRequest"/>
+			<output message="tns:moveTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="removeTopic">
+			<input message="tns:removeTopicRequest"/>
+			<output message="tns:removeTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="mergeTopics">
+			<input message="tns:mergeTopicsRequest"/>
+			<output message="tns:mergeTopicsResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="copyTopic">
+			<input message="tns:copyTopicRequest"/>
+			<output message="tns:copyTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="setAdminLock">
+			<input message="tns:setAdminLockRequest"/>
+			<output message="tns:setAdminLockResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="setTopic">
+			<input message="tns:setTopicRequest"/>
+			<output message="tns:setTopicResponse"/>
+		</wsdl:operation>
+		<wsdl:operation name="giveHierarchy">
+			<input message="tns:chaine"/>
+			<output message="tns:listeElements"/>
+		</wsdl:operation>
+		<wsdl:operation name="giveWebProperties">
+			<input message="tns:web"/>
+			<output message="tns:taille"/>
+		</wsdl:operation>
+		<wsdl:operation name="giveTopicProperties">
+			<input message="tns:topic"/>
+			<output message="tns:property"/>
+		</wsdl:operation>
+		<wsdl:operation name="sameTopicParent">
+			<input message="tns:name"/>
+			<output message="tns:listeTopics"/>
+		</wsdl:operation>
+		<wsdl:operation name="sayHello">
+			<input message="tns:hellop"/>
+			<output message="tns:hellor"/>
+		</wsdl:operation>
+		<wsdl:operation name="getTopic">
+			<input message="tns:topicpath"/>
+			<output message="tns:topicproperties"/>
+		</wsdl:operation>
+		<wsdl:operation name="getAttach">
+			<input message="tns:propertyattach"/>
+			<output message="tns:propertiesattach"/>
+		</wsdl:operation>
+		<wsdl:operation name="getListAttach">
+			<input message="tns:attachpathliste"/>
+			<output message="tns:listeattachement"/>
+		</wsdl:operation>
+		<wsdl:operation name="getAllTopic">
+			<input message="tns:allkey"/>
+			<output message="tns:allTopic"/>
+		</wsdl:operation>
+		<wsdl:operation name="getLaTex">
+			<input message="tns:html"/>
+			<output message="tns:latex"/>
+		</wsdl:operation>
+	</wsdl:portType>
+	<wsdl:binding name="Binding" type="tns:ServicePortType">
+		<soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+		<operation name="connect">
+			<soap:operation soapAction="urn:Service#connect"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getUsers">
+			<soap:operation soapAction="urn:Service#getUsers"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="disconnect">
+			<soap:operation soapAction="urn:Service#disconnect"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="ping">
+			<soap:operation soapAction="urn:Service#ping"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="subscribe">
+			<soap:operation soapAction="urn:Service#subscribe"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="removeSubscription">
+			<soap:operation soapAction="urn:Service#removeSubscription"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getWebs">
+			<soap:operation soapAction="urn:Service#getWebs"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="renameTopic">
+			<soap:operation soapAction="urn:Service#renameTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="lockTopic">
+			<soap:operation soapAction="urn:Service#lockTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="moveTopic">
+			<soap:operation soapAction="urn:Service#moveTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="removeTopic">
+			<soap:operation soapAction="urn:Service#removeTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="mergeTopics">
+			<soap:operation soapAction="urn:Service#mergeTopics"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="copyTopic">
+			<soap:operation soapAction="urn:Service#copyTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="setAdminLock">
+			<soap:operation soapAction="urn:Service#setAdminLock"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="setTopic">
+			<soap:operation soapAction="urn:Service#setTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="giveHierarchy">
+			<soap:operation soapAction="urn:Service#giveHierarchy"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="giveWebProperties">
+			<soap:operation soapAction="urn:Service#giveWebProperties"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="giveTopicProperties">
+			<soap:operation soapAction="urn:Service#giveTopicProperties"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="sameTopicParent">
+			<soap:operation soapAction="urn:Service#sameTopicParent"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="sayHello">
+			<soap:operation soapAction="urn:Service#sayHello"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getTopic">
+			<soap:operation soapAction="urn:Service#getTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getAttach">
+			<soap:operation soapAction="urn:Service#getAttach"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getListAttach">
+			<soap:operation soapAction="urn:Service#getListAttach"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getAllTopic">
+			<soap:operation soapAction="urn:Service#getAllTopic"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+		<operation name="getLaTex">
+			<soap:operation soapAction="urn:Service#getLaTex"/>
+			<input>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</input>
+			<output>
+				<soap:body use="encoded" encodingStyle="http://schemas.xmlsoap.org/soap/encoding/" namespace="urn:Service"/>
+			</output>
+		</operation>
+	</wsdl:binding>
+	<wsdl:service name="Service">
+		<wsdl:port name="ServicePortType" binding="tns:Binding">
+			<soap:address location="http://miageprojet.unice.fr/twikitestnice/bin/service"/>
+		</wsdl:port>
+	</wsdl:service>
+</wsdl:definitions>

@@ -1,0 +1,38 @@
+#!/usr/bin/perl -w
+
+# Jnlp Preprocessor
+# Author : Romain Raugi
+
+use strict;
+
+BEGIN { unshift @INC, '.'; require 'setlib.cfg'; }
+
+use Service;
+use CGI;
+
+my $query= new CGI;
+# Retrieve JNLP
+my $jnlp = $query->param( 'jnlp' );
+# Retrieve path
+my $thePathInfo = $query->path_info();
+my ( $web, $topic );
+$thePathInfo =~ s/\///;
+
+if ( $thePathInfo =~ m/(.*)\/(.*)/ ) {
+  $web = $1;
+  $topic = $2;
+  
+  # Write JNLP
+  print "Content-type: application/x-java-jnlp-file\n\n";
+  open ( FILE, "<$Service::jnlpDir/$jnlp" );
+  while ( my $line = <FILE> ) {
+    $line =~ s/%WEB%/$web/;
+    $line =~ s/%TOPIC%/$topic/;
+    $line =~ s/%ENDPOINT%/$Service::endpoint/;
+    print $line;
+  }
+  close( FILE );
+} else {
+  # Error in arguments
+  print "Content-type: text/html\n\n<h1>Errors in Arguments</h1>\nUnable to generate JNLP";
+}

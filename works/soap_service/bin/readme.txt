@@ -1,0 +1,1 @@
+CGI-scripts to put in <TWiki Install Dir>/bin to make web services functional.

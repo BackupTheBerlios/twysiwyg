@@ -1,0 +1,1 @@
+You can find here notification messages' XML Schema, from which you can generate classes with Castor or JAXB binding compiler.

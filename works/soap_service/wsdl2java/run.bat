@@ -1,0 +1,1 @@
+java -cp ".;%1\Axis.jar;%1\commons-logging.jar;%1\commons-discovery.jar;%1\wsdl4j.jar;%1\jaxrpc.jar;%1\soap.jar;%1\saaj.jar" org.apache.axis.wsdl.WSDL2Java %2

@@ -1,0 +1,16 @@
+<?xml version='1.0' ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:CCNS="http://www.capeclear.com/attributes/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SOAP-ENV:Body>
+    <ns1:mergeTopics xmlns:ns1="urn:Service" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+      <key xsi:type="xsd:int">0</key>
+      <webTarget xsi:type="xsd:string">Sandbox</webTarget>
+      <topicTarget xsi:type="xsd:string">TestPage</topicTarget>
+      <webFrom xsi:type="xsd:string">Sandbox</webFrom>
+      <topicFrom xsi:type="xsd:string">TestPage2</topicFrom>
+      <attachments xsi:type="xsd:boolean">0</attachments>
+      <identify xsi:type="xsd:boolean">0</identify>
+      <removeOption xsi:type="xsd:int">-1</removeOption>
+      <dontNotify xsi:type="xsd:boolean">1</dontNotify>
+    </ns1:mergeTopics>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

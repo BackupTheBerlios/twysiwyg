@@ -1,0 +1,182 @@
+#!/usr/bin/perl -wT
+
+BEGIN { 
+	unshift @INC, '.'; require 'setlib.cfg';
+}
+
+use strict;
+use Service;
+
+my $input = $ENV{ "QUERY_STRING" };
+my $response;
+my $length = 0;
+if ( $input eq "" ) {
+	# Print Trace
+	my $trace = "";
+	open( TRACE, "<$Service::trace_file" ) or $trace = "Failed to open trace file : $Service::trace_file";
+	if ( ! $trace ) {
+		while ( my $line = <TRACE> ) {
+			chomp $line;
+			my ( $date, $log ) = split/>>/, $line;
+			$trace .= "<font color='green' style='font-style:italic;'>$date</font> : $log<br/>";
+		}
+		close( TRACE );
+	}
+	# Header
+	$response = "<h1>Service Log :</h1>$trace";
+	my $nb_lines = $response =~ tr/\n//;
+	$length += length( $response ) + $nb_lines;
+	print "Status: 200 OK\nContent-type: text/html\nContent-length: $length\n\n$response";
+	
+} else {
+	# Services invokation
+	my @list = split( /&/, $input );
+	my ( $name, $value );
+	my $params = {};
+	foreach ( @list ) {
+		( $name, $value )= split( /=/, $_ );
+		$name =~   s/%(..)/pack("c",hex($1))/ge;
+	 	$value =~  s/%(..)/pack("c",hex($1))/ge;
+	 	# Update hash map
+		$params->{ $name } = $value;
+	}
+
+	# Service invokation test & dispatch
+	my $call = $params->{ 'method' };
+	my $content_type = "text/xml";
+	$response = "<?xml version=\"1.0\" encoding=\"UTF-16\"?>";
+	if ( $call eq "connect" ) {
+		# Connection service
+		my ( $code, $timeout ) = &Service::Connection::connect( $params->{'usage'}, $params->{'login'}, $params->{'pass'} );
+		my $messages = { -1 => 'Empty login', -2 => 'Maximum number of connections reached', 
+						 -3 => 'Authentication failed' };
+		if ( $code >= -3 && $code <= -1 ) { $response .= &make_message( $code, $messages->{$code} ); }
+		else { $response .= &make_connectioninfo( $code, $timeout ); }
+	} elsif ( $call eq "disconnect" ) {
+		my $code = &Service::Connection::disconnect( $params->{'key'} );
+		my $messages = { 0 => 'Disconnection failed', 1 => 'Disconnection OK' };
+		$response .= &make_message( $code, $messages->{$code} );
+	} elsif ( $call eq "ping" ) {
+		my $code = &Service::Connection::ping( $params->{'key'} );
+		my $messages .= { 0 => 'Ping failed', 1 => 'Ping OK' };
+		$response = &make_message( $code, $messages->{$code} );
+	} elsif ( $call eq "getUsers" ) {
+		$response .= &make_users( &Service::Connection::getUsers() );
+	} elsif ( $call eq "getTopicNames" ) {
+		my $web = $params->{'web'};
+		my ( $code, @list ) = &Service::Topics::getTopicNames( $web );
+		if ( $code == -1 ) { $response .= &make_message( $code, "Web $web doesn't exists" ); }
+		else { $response .= &make_topics_list( @list ); }
+	} elsif ( $call eq "getTopicContent" ) {
+		my ( $code, $text ) = &Service::Topics::getTopicContent( $params->{'key'}, $params->{'web'}, $params->{'topic'} );
+		my $messages = { -3 => "Topic already locked by $text", -2 => 'Connection required to invoke service', 
+						 -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
+		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
+		else { $response .= &make_topic( $text ); }
+	} elsif ( $call eq "getTopicAttachment" ) {
+		my ( $code, $attachment ) = &Service::Topics::getTopicAttachment( $params->{'key'}, $params->{'web'}, $params->{'topic'}, $params->{'name'} );
+		my $messages = { -3 => "Attachment doesn't exists", -2 => 'Connection required to invoke service', 
+						 -1 => "Topic doesn't exists", 0 => 'Permissions denied' };
+		if ( $code >= -3 && $code <= 0 ) { $response .= &make_message( $code, $messages->{$code} ); }
+		else { $response .= &make_attachment( $attachment ); }
+	} elsif ( $call eq "lockTopic" ) {
+		my ( $code, $info ) = &Service::Topics::lockTopic( $params->{'key'}, $params->{'web'},
+						      							   $params->{'topic'}, $params->{'doUnlock'} );
+		my $messages = { -1 => 'Existing topic required', -2 => 'Connection required to invoke service', 
+						 0 => "Operation failed, lock already put by $info", 1 => 'Operation succeded' };
+		$response .= &make_message( $code, $messages->{$code} );
+	} elsif ( $call eq "saveTopicContent" ) {
+		# TODO !
+	} elsif ( $call eq "uploadTopicAttachment" ) {
+		# TODO !
+	} elsif ( $call eq "removeTopicAttachment" ) {
+		# TODO !
+	} elsif ( $call eq "renameTopicAttachment" ) {
+		# TODO !
+	} else {
+		$content_type = "text/html";
+		$response = "<h1>Unknown service invoked</h1>";
+	}
+	my $nb_lines = $response =~ tr/\n//;
+	$length = length( $response ) + $nb_lines;
+	print "Status: 200 OK\nContent-type: $content_type\nContent-length: $length\n\n$response";
+}
+
+# Create XML message
+sub make_message {
+	my ( $code, $content ) = @_;
+	return "<message><code>$code</code><content>$content</content></message>";
+}
+
+# Create XML connection information
+sub make_connectioninfo {
+	my ( $key, $timeout ) = @_;
+	return "<connection><key>$key</key><timeout>$timeout</timeout></connection>";
+}
+
+# Create XML users representation
+sub make_users {
+	my ( $users_ref ) = @_;
+	my ( $key, $usage, $login, $cnx );
+	my $response = "<users>";
+	for $key ( sort keys %$users_ref ) {
+		$usage = $users_ref->{$key}{'USAGE'};
+		$login = $users_ref->{$key}{'LOGIN'};
+		$cnx = localtime($users_ref->{$key}{'CNX'});
+		$response .= "<user><usage>$usage</usage><login>$login</login><connexion>$cnx</connexion></user>";
+	}
+	$response .= "</users>";
+	return $response;
+}
+
+# Create XML listing of topics
+sub make_topics_list {
+	my ( @list ) = @_;
+	my $response = "<topics>";
+	foreach ( @list ) {
+		$response .= "<topic>$_</topic>";
+	}
+	$response .= "</topics>";
+}
+
+# Create XML topic representation
+sub make_topic {
+	my ( $topic ) = @_;
+	my $web = $topic->{'web'};
+	my $name = $topic->{'name'};
+	my $author = $topic->{'author'};
+	my $date = $topic->{'date'};
+	my $format = $topic->{'format'};
+	my $version = $topic->{'version'};
+	my $content = $topic->{'content'};
+	my @attachments = @{$topic->{'attachments'}};
+	my $response = "<topicContent>";
+	$response .= "<web>$web</web><name>$name</name><author>$author</author> \
+				  <date>$date</date><format>$format</format><version>$version</version> \
+				  <content><![CDATA[$content]]></content>";
+	$response .= "<attachments>";
+	foreach my $attachment ( @attachments ) {
+    	# Retrieve properties
+    	$response .= &make_attachment( $attachment );
+	}
+	$response .= "</attachments>";
+	$response .= "</topicContent>";
+	return $response;
+}
+
+# Create XML Base64 binary data of attachment
+sub make_attachment {
+	my ( $attachment ) = @_;
+	my $att_name 	= $attachment->{"name"};
+    my $att_version = $attachment->{"version"};
+    my $att_path    = $attachment->{"path"};
+    my $att_size    = $attachment->{"size"};
+    my $att_date    = localtime( $attachment->{"date"} );
+    my $att_user    = $attachment->{"user"};
+	my $att_comment = $attachment->{"comment"};
+	my $att_attr    = $attachment->{"attr"};
+	my $att_data    = $attachment->{"data"};
+	return "<attachment><name>$att_name</name><version>$att_version</version><path>$att_path</path> \
+			<size>$att_size</size><date>$att_date</date><user>$att_user</user> \
+			<comment><![CDATA[$att_comment]]></comment><attr>$att_attr</attr><data>$att_data</data></attachment>";
+}

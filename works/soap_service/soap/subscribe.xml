@@ -1,0 +1,9 @@
+<?xml version='1.0' ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:CCNS="http://www.capeclear.com/attributes/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SOAP-ENV:Body>
+    <ns1:subscribe xmlns:ns1="urn:Service" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+      <key xsi:type="xsd:int">0</key>
+      <port xsi:type="xsd:int">1036</port>
+    </ns1:subscribe>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

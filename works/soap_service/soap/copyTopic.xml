@@ -1,0 +1,14 @@
+<?xml version='1.0' ?>
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/" xmlns:CCNS="http://www.capeclear.com/attributes/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:SOAP-ENC="http://schemas.xmlsoap.org/soap/encoding/" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SOAP-ENV:Body>
+    <ns1:copyTopic xmlns:ns1="urn:Service" SOAP-ENV:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+      <key xsi:type="xsd:int">0</key>
+      <srcWeb xsi:type="xsd:string">Sandbox</srcWeb>
+      <topic xsi:type="xsd:string">TestPage</topic>
+      <dstWeb xsi:type="xsd:string">Main</dstWeb>
+      <newName xsi:type="xsd:string">TestPage</newName>
+      <parent xsi:type="xsd:string"></parent>
+      <attachments xsi:type="xsd:boolean">0</attachments>
+    </ns1:copyTopic>
+  </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

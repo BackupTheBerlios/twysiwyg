@@ -1,0 +1,1 @@
+You can find here some SOAP requests to invoke Web services. A program like Capescience NetTool allows you to tests these.

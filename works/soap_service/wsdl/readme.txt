@@ -1,0 +1,1 @@
+Here is web services' XML description. Stubs required by clients are generated from this with Apache WSIF WSDL2Java.

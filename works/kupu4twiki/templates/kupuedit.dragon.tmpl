@@ -1,0 +1,79 @@
+%TMPL:INCLUDE{"twiki"}%
+%TMPL:INCLUDE{"kupu"}%
+
+%TMPL:DEF{"head"}%
+<head>
+<title> %TMPL:P{"titleaction"}%%TOPIC% &lt; %WEB% &lt; %WIKITOOLNAME%</title>
+<meta http-equiv="Content-Type" content="text/html; charset=%CHARSET%" />
+<meta name="robots" content="noindex" />
+%HTTP_EQUIV_ON_EDIT%
+<base href="%SCRIPTURL%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%" />
+%TMPL:P{"dragoncss"}%
+<link rel="stylesheet" href="%KUPU{"URL"}%/kupu.css"/>
+%TMPL:P{"kupuscripts"}%
+</head>
+%TMPL:END%
+
+%TMPL:DEF{"simpleheader"}%
+---+ <nop>%TOPIC% (edit)
+%BR%%TMPL:END%
+
+%TMPL:DEF{"titleaction"}%(edit) %TMPL:END%
+%TMPL:DEF{"webaction"}%Change topic%TMPL:END%
+
+%TMPL:DEF{"content"}%
+%TMPL:P{"simpleheader"}%
+%TMPL:P{"kupu"}%
+<div class="twikiFormHolder">
+<form name="main" action="%SCRIPTURLPATH%/save%SCRIPTSUFFIX%/%WEB%/%TOPIC%" method="post">
+%TMPL:P{"topicaction"}%
+</form>
+</div>
+%TMPL:END%
+
+%TMPL:DEF{"topicaction"}%
+<table class="twikiTopicAction">
+<tr class="twikiTopicAction">
+<td class="twikiCancelCol"><a id="cancel" href="%SCRIPTURLPATH%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%?unlock=on" accesskey="c">Cancel</a></td>
+</tr>
+</table>
+%TMPL:END%
+
+%TMPL:DEF{"previewheaderlogo"}%
+<noautolink>
+<img src="%WIKILOGOIMG%" class="ds-logo" alt="Logo" title="This logo is not a link on edit and preview pages." />
+</noautolink>
+%TMPL:END%
+
+%TMPL:P{"htmldoctype"}%
+%TMPL:P{"head"}%
+%TMPL:P{"kupubodystart"}%
+<div class="ds-nmwrapper">
+<div class="ds-nmheaderwrapper">
+<div class="ds-nmlogowrapper">
+%TMPL:P{"previewheaderlogo"}%</div><div class="ds-nmheaderhelp">%TMPL:P{"headerhelp"}%</div></div>
+<div class="ds-nmtitlemessage">
+<noautolink>
+<b>%WEB%.%TOPIC%</b>&nbsp;<span class="ds-largerbold">%TMPL:P{"titleaction"}%</span>
+</noautolink>
+</div>
+<form name="main" action="%SCRIPTURLPATH%/preview%SCRIPTSUFFIX%/%WEB%/%TOPIC%" method="post" style="margin: 0">
+<div class="ds-previewsave">
+<a href="%SCRIPTURLPATH%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%?unlock=on">Cancel edit </a>
+</div>
+</form>
+<div style="padding: 1em;">
+#PageTop
+%TMPL:P{"kupu"}%
+<div class="ds-editformfieldscontainer">
+%FORMFIELDS%
+</div>
+<form name="main" action="%SCRIPTURLPATH%/preview%SCRIPTSUFFIX%/%WEB%/%TOPIC%" method="post" style="margin: 0">
+<div class="ds-previewsave">
+<a href="%SCRIPTURLPATH%/view%SCRIPTSUFFIX%/%WEB%/%TOPIC%?unlock=on"> Cancel edit </a>
+</div>
+</form>
+</div>
+#PageBottom
+</div>
+%TMPL:P{"bodyend"}%

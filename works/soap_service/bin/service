@@ -1,0 +1,12 @@
+#!/usr/bin/perl -w
+
+# Requests Dispatcher
+# Authors : Maxime Lamure & Romain Raugi
+
+BEGIN { unshift @INC, '.'; require 'setlib.cfg'; }
+
+use SOAP::Transport::HTTP;
+
+SOAP::Transport::HTTP::CGI
+    -> dispatch_to('Service')
+    -> handle;

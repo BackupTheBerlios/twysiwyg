@@ -1,0 +1,165 @@
+#!/usr/bin/perl -wT
+
+BEGIN {
+    # Set default current working directory (needed for mod_perl)
+    if( $ENV{"SCRIPT_FILENAME"} && $ENV{"SCRIPT_FILENAME"} =~ /^(.+)\/[^\/]+$/ ) {
+        chdir $1;
+    }
+    # Set library paths in @INC, at compile time
+    unshift @INC, '.';
+    require 'setlib.cfg';
+}
+
+use strict;
+use CGI::Carp qw( fatalsToBrowser );
+use CGI;
+use TWiki;
+
+=pod
+---++ save_attachment( $query, $userName, $webName, $topic, $meta, $content )
+Save attachment. 
+=cut
+sub save_attachment {
+    my ( $query, $userName, $webName, $topic, $meta, $content ) = @_;
+    my $comment = $query->param('comment');
+    my $hide = $query->param('hide');
+    my $file = $query->param('file');
+    my $upload_filehandle = $query->upload('file');
+    
+    my $saveCmd = "";
+    my $dontLogSave = "";
+    my $doUnlock = "";
+    my $dontNotify = "1";
+
+    # Upload
+    # Temporary name
+    my $name = $file;
+    $name =~ s/.*[\/\\](.*)/$1/;
+    my $tmpFilename = "$name.tmp";
+    # Write file content
+    open UPLOADFILE, ">$tmpFilename"  or return ( $meta, $content );
+    binmode UPLOADFILE;
+    while ( <$upload_filehandle> ) {
+      print UPLOADFILE;
+    }
+    close UPLOADFILE;
+    # Attribute setting
+    $hide = "h" if ( $hide );
+    # Test existence
+    my $size = -s $tmpFilename;
+    my $error = undef;
+    if ( -e $tmpFilename && $size ) {
+      # Save Attachment
+      $error = &TWiki::Store::saveAttachment(  $webName, $topic, $content, $saveCmd,
+                                               $name, $dontLogSave, $doUnlock,
+                                               $dontNotify, $comment, $tmpFilename );
+      # Delete temp file
+      unlink $tmpFilename;
+      return ( $meta, $content ) if ( $error );
+    } else {
+      return ( $meta, $content );
+    }
+    # Create properties
+    &TWiki::Attach::updateAttachment( "", $name, $file, $size,
+                                      "", $userName, $comment, $hide, $meta ) if ( ! $error );   
+    # Save topic
+    $error = &TWiki::Store::saveTopic( $webName, $topic, $content, $meta, $saveCmd, $doUnlock, $dontNotify );  
+    return ( $meta, $content );
+}
+
+my $query = new CGI;
+
+# Initialization
+my $thePathInfo = $query->path_info(); 
+my $theRemoteUser = $query->remote_user();
+my $theTopic = $query->param( 'topic' );
+my $theUrl = $query->url;
+
+my ( $topic, $webName, $scriptUrlPath, $userName ) = 
+  TWiki::initialize( $thePathInfo, $theRemoteUser,
+                     $theTopic, $theUrl, $query );
+
+# Attachments
+my $attachments_list = "";
+my $pub = $TWiki::pubUrlPath;
+$pub =~ s/\///;
+my $attachurl = "$TWiki::defaultUrlHost$pub\/$webName\/$topic\/";
+# Test topic existence
+if( &TWiki::Store::topicExists( $webName, $topic ) ) {
+  # Obtain topic
+  my ( $meta, $content ) = &TWiki::Store::readTopic( $webName, $topic );
+  # Test permissions
+  my $wikiUserName = &TWiki::userToWikiName( $userName );
+  if ( &TWiki::Access::checkAccessPermission( "view", $wikiUserName, $content, $topic, $webName ) ) {
+
+    # Save new attachment if necessary
+    my $file = $query->param('file');
+    if ( $file ) {
+    ( $meta, $content ) = &save_attachment( $query, $userName, $webName, $topic, $meta, $content );
+      # Tip to avoid re-upload when http refresh
+      #TWiki::redirect( $query, $query->url );
+    }
+
+    # Display existing attachments
+    my @attachments = $meta->find( "FILEATTACHMENT" );
+    foreach my $attachment (@attachments) {
+      my $name = $attachment->{"name"};
+      my $fileIcon = &TWiki::Attach::filenameToIcon( $name );
+      $attachments_list .= "<button onClick=\"parent.insertAttachRef(\'$attachurl$name\', \'$name\');\">$fileIcon&nbsp;$name<\/button><br\/>";
+    }
+  }
+}
+
+my $response = "<html>
+<head>
+<script language=\"javascript\">
+// Retrieve parent\'s external stylesheets to apply
+var length = window.parent.document.styleSheets.length;
+var i = 0;
+while ( ( i < length ) ) {
+  if (window.parent.document.styleSheets[i].href.indexOf(\".css\") != -1)
+    document.write('<'+'link rel=\"stylesheet\" type=\"text/css\" href=\"' + window.parent.document.styleSheets[i].href + '\" />');
+  i++;
+}
+<\/script>
+<style type=\"text/css\" media=\"all\">
+body {
+  overflow: hidden;
+}
+</style>
+</head>
+<body class=\"kupu-toolbox-attachments-framecontent\">
+  <div class=\"kupu-toolbox-label\">
+  Upload :
+  </div>
+  <form id=\"kupu-attachment-form\" enctype=\"multipart/form-data\" action=\"$theUrl/$webName/$topic\" method=\"POST\"/>
+    <table width=\"100%\">
+      <tr>
+        <td class=\"kupu-toolbox-label\">File</td>
+        <td>
+          <input name=\"file\" id=\"kupu-attachment-file\" type=\"file\" size=\"13\"/>
+        </td>
+      </tr>
+      <tr>
+        <td class=\"kupu-toolbox-label\">Comment</td>
+        <td>
+          <input name=\"comment\" id=\"kupu-attachment-comment\" type=\"text\" size=\"14\"/>
+          <input name=\"hide\" id=\"kupu-attachment-attr\" type=\"checkbox\">Hide</input>
+        </td>
+      </tr>
+      <tr>
+        <td colspan=\"2\" style=\"text-align: center\">
+          <input type=\"submit\" class=\"submit\" value=\"Upload\"/>
+        </td>
+      </tr>
+    </table>
+  </form>
+<hr/>
+<div id=\"attachments-list\" class=\"attachments-list\">
+$attachments_list
+</div>
+<body>
+</html>";
+
+TWiki::writeHeader( $query );
+print "$response";
