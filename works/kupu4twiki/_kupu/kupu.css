@@ -1,0 +1,307 @@
+/*****************************************************************************
+ *
+ * Kupu common styles
+ *
+ * Copyright (c) 2003-2004 Kupu Contributors. See CREDITS.txt
+ *
+ * Instead of customizing this file, it is recommended to add your own
+ * CSS file.  Feel free to use whole or parts of this for your own
+ * designs, but give credit where credit is due.
+ *
+ *****************************************************************************/
+
+/* $Id: kupu.css,v 1.1 2004/09/08 16:10:13 romano Exp $ */
+
+div.kupu-fulleditor {
+  font-family: Verdana, "Lucida Grande", Helvetica, Arial, sans-serif;
+  margin: 0.2em;
+  height: 100%;
+}
+
+#kupu-editor, #kupu-editor-textarea {
+  height: 600px;
+  width: 99%;
+}
+
+div.kupu-fulleditor .kupu-editorframe {
+  margin-right: 20em;
+}
+
+div.kupu-fulleditor .kupu-editorframe iframe, textarea {
+  border: 0px;               
+}
+
+.kupu-tb {
+  padding: 3px;
+  margin-bottom: 0.4em;
+  background-color: #CCCCCC;
+  border: 1px solid;
+  border-color: #EEEEEE #888888 #888888 #EEEEEE;
+}
+
+div.kupu-fulleditor button, input.submit {
+  cursor: default;
+  color: black;
+  border: 1px solid #CCCCCC;
+}
+
+div.kupu-fulleditor button:hover, input.submit:hover {
+  cursor: default;
+  border: 1px solid;
+  border-color: #EEEEEE #888888 #888888 #EEEEEE;
+}
+
+div.kupu-fulleditor button:active, input.submit:active {
+  cursor: default;
+  border: 1px solid;
+  border-color: #888888 #EEEEEE #EEEEEE #888888;
+  background-color: #EEEEEE;
+}
+
+#kupu-tb-buttons button {
+  margin-top: 0;
+  margin-left: 0;
+  height: 26px;
+  width: 26px;
+  background-repeat: no-repeat;
+}
+
+.kupu-tb-buttongroup {
+  margin-left: 2px;
+  margin-right: 2px;
+}
+
+.kupu-bold {background-image: url("kupuimages/bold.gif");background-color: #CCCCCC;}
+.kupu-bold-pressed {background-image: url("kupuimages/bold.gif"); background-color: white;}
+.kupu-forecolor {background-image: url("kupuimages/textcolor.gif");background-color: #CCCCCC;display:none;}
+.kupu-hilitecolor {background-image: url("kupuimages/bgcolor.gif");background-color: #CCCCCC;display:none;}
+.kupu-hyperlink {background-image: url("kupuimages/hyperlink.gif");background-color: #CCCCCC;}
+.kupu-hyperlink-pressed {background-image: url("kupuimages/hyperlink.gif"); background-color: white}
+.kupu-image {background-image: url("kupuimages/image.gif");background-color: #CCCCCC;}
+.kupu-indent {background-image: url("kupuimages/indent.gif");background-color: #CCCCCC;display:none;}
+.kupu-inserthorizontalrule {background-image: url("kupuimages/hr.gif");background-color: #CCCCCC;}
+.kupu-insertorderedlist {background-image: url("kupuimages/numbered.gif");background-color: #CCCCCC;}
+.kupu-insertunorderedlist {background-image: url("kupuimages/list.gif");background-color: #CCCCCC;}
+.kupu-insertdefinitionlist {background-image: url("kupuimages/definitionlist.png");background-color: #CCCCCC;display:none;}
+.kupu-italic {background-image: url("kupuimages/italic.gif");background-color: #CCCCCC;}
+.kupu-italic-pressed {background-image: url("kupuimages/italic.gif"); background-color: white}
+.kupu-justifycenter {background-image: url("kupuimages/centre.gif");background-color: #CCCCCC;display:none;}
+.kupu-justifyleft {background-image: url("kupuimages/left_just.gif");background-color: #CCCCCC;display:none;}
+.kupu-justifyright {background-image: url("kupuimages/right_just.gif");background-color: #CCCCCC;display:none;}
+.kupu-logo {background-image: url("kupuimages/kupu_icon.gif");background-color: #CCCCCC;}
+.kupu-outdent {background-image: url("kupuimages/outdent.gif");background-color: #CCCCCC;display:none;}
+.kupu-redo {background-image: url("kupuimages/redo.gif");background-color: #CCCCCC;}
+.kupu-save {background-image: url("kupuimages/save.gif");background-color: #CCCCCC;}
+.kupu-save-and-exit {background-image: url("kupuimages/exit.gif");background-color: #CCCCCC;}
+.kupu-space {background-image: url("kupuimages/space.gif");background-color: #CCCCCC;}
+.kupu-source {background-image: url("kupuimages/source.gif");background-color: #CCCCCC;}
+.kupu-subscript {background-image: url("kupuimages/subscript.gif");background-color: #CCCCCC;display:none;}
+.kupu-subscript-pressed {background-image: url("kupuimages/subscript.gif"); background-color: white;display:none;}
+.kupu-superscript {background-image: url("kupuimages/superscript.gif");background-color: #CCCCCC;display:none;}
+.kupu-superscript-pressed {background-image: url("kupuimages/superscript.gif"); background-color: white;display:none;}
+.kupu-table {background-image: url("kupuimages/table.gif");background-color: #CCCCCC;}
+.kupu-underline {background-image: url("kupuimages/underline.gif");background-color: #CCCCCC;display:none;}
+.kupu-underline-pressed {background-image: url("kupuimages/underline.gif"); background-color: white;display:none;}
+.kupu-undo {background-image: url("kupuimages/undo.gif");background-color: #CCCCCC;}
+.kupu-removelink {background-image: url("kupuimages/remove.png");background-color: #CCCCCC;}
+.kupu-removeimage {background-image: url("kupuimages/remove.png");background-color: #CCCCCC;}
+.kupu-removevar {background-image: url("kupuimages/remove.png");background-color: #CCCCCC;}
+.kupu-twikiicons {background-image: url("kupuimages/smiley.gif");background-color: #CCCCCC;}
+
+#kupu-tb-buttons button.invisible { 
+  display: none;
+}
+
+#kupu-tb-buttons button.visible { 
+  display: inline;
+}
+
+div.kupu-editorframe {
+  margin-left: 0.3em;
+  margin-bottom: 0.3em;
+  border: solid 2px #EEEEEE;
+}
+
+div.kupu-toolboxes {
+  float: right;
+  background-color: #EEEEEE;
+  border: solid 1px;
+  border-color: #EEEEEE #888888 #888888 #EEEEEE;
+  height: 100%;
+  width: 19.4em;
+  margin-right: 0.3em;
+  margin-bottom: 0.3em;
+}
+
+div.kupu-toolboxes button, input.submit {
+  background-color: #CCCCCC;
+}
+
+div.kupu-toolbox, div.kupu-toolbox-active {
+  margin-bottom: 1em;
+}
+
+div.kupu-toolbox h1, div.kupu-toolbox-active h1 {
+  text-align: center;
+  width: 100%;
+  background-color: #CCCCCC;
+  border: 0px;
+  margin-top: 0;
+  font-size: 1.1em;
+  color: black;
+  cursor: pointer;
+  cursor: hand;
+}
+
+div.kupu-toolbox input, select {
+  color: black;
+  font-size: 80%;
+}
+
+div.kupu-toolbox-active input, select {
+  color: black;
+  font-size: 80%;
+}
+
+div.kupu-toolbox-label, span.kupu-toolbox-searchterm, 
+div.kupu-toolbox-st, button.kupu-toolbox-action, 
+div.kupu-toolbox-results {
+  margin-left: 0.2em;
+  margin-right: 0.2em;
+}
+
+div.kupu-toolbox-label {
+  margin-bottom: 0.4em;
+}
+
+div.kupu-toolbox table#kupu-toolbox-addtable input, 
+div.kupu-toolbox-active table#kupu-toolbox-edittable input {
+  width: 20px;
+}
+
+div.kupu-toolbox-active {
+  background-color: #DDDDDD;
+}
+
+#kupu-toolbox-editlink, #kupu-toolbox-edittable,
+#kupu-ulstyles, #kupu-olstyles {
+  display: none;
+}
+
+
+div#kupu-colorchooser {
+  position: absolute;
+  visibility: hidden;
+  border: solid black 1px;
+  background-color: #EEEEEE;
+  padding: 0.2em;
+  font-size: small;
+}
+
+div#kupu-perms-selector {
+  position: absolute;
+  display: none;
+  left: 30%;
+  top: 30%;
+  width: 300px;
+  background-color: #EEEEEE;
+  padding: 0.2em;
+  font-size: small;
+  text-align: center;
+}
+
+div#kupu-twikiicons {
+  position: absolute;
+  display: none;
+  background-color: #EEEEEE;
+  padding: 0.2em;
+  font-size: small;
+  border-width: 2px;
+  border-style: solid;
+  cursor: default;
+  width: 350px;
+}
+
+div#kupu-twikiicons img {
+  background-color: none;
+  cursor: hand;
+  cursor: pointer;
+}
+
+div#kupu-twikiicons img:hover {
+  background-color: #CCCCCC;
+}
+
+div#kupu-twikiicons img:active {
+  border: 1px solid;
+  border-color: #FFFFFF;
+}
+
+#kupu-toolbox-properties {
+  display: none;
+}
+
+#kupu-toolbox-images {
+  display: none;
+}
+
+#kupu-toolbox-links {
+
+}
+
+#kupu-toolbox-attachments {
+  
+}
+
+.kupu-toolbox-attachments-framecontent {
+  background-color: #EEEEEE;
+}
+
+.kupu-toolbox-attachments-framecontent button, input.submit {
+  cursor: default;
+  color: black;
+  border: 1px solid #CCCCCC;
+}
+
+#kupu-toolbox-tables {
+
+}
+
+#kupu-toolbox-twikiperms {
+
+}
+
+#kupu-toolbox-twikiperms #kupu-perms-selector {
+  border: 1px solid;
+  border-color: #EEEEEE #888888 #888888 #EEEEEE;
+}
+
+#kupu-toolbox-debug {
+  display: none;
+}
+
+div.attachments-list {
+  width: 100%;
+  innerwidth: 100%;
+  height: 60px;
+  overflow: auto;
+}
+div.attachments-list button {
+  cursor: hand;
+  cursor: pointer;
+  width: 100%;
+  color: black;
+  border: 1px solid #CCCCCC;
+  background-color: #CCCCCC;
+}
+
+div.attachments-list button:hover {
+  border: 1px solid;
+  border-color: #EEEEEE #888888 #888888 #EEEEEE;
+}
+
+div.attachments-list button:active {
+  border: 1px solid;
+  border-color: #888888 #EEEEEE #EEEEEE #888888;
+  background-color: #EEEEEE;
+}

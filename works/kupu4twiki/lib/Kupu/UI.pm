@@ -179,14 +179,16 @@ sub kupuedit {
   do "imgmap.cfg";
   my $icons = "";
   my @map = split/\n/, $imgmap;
+  my $host = $TWiki::defaultUrlHost;
+  $host =~ s/^(.*)\/$/$1/;
   foreach my $exp ( @map ) {
     my ( $syntax, $icon ) = split/ /, $exp;
     $icon = $syntax if ( ! $icon );
     if ( $icon ) {
       my $filename = $icon;
       $filename =~ s/$TWiki::pubUrlPath/$TWiki::pubDir/;
-      $icon =~ s/\/(.*)/$1/;
-      $icons .= "<img src=\"$TWiki::defaultUrlHost$icon\" hspace=\"3\"/>" if ( -e "$filename" );
+      $icon =~ s/^\/(.*)$/$1/;
+      $icons .= "<img src=\"$host\/$icon\" hspace=\"3\"/>" if ( -e "$filename" );
     }
   }
   $tmpl =~ s/%TWIKIICONS%/$icons/go;
@@ -204,10 +206,6 @@ sub kupuedit {
     }
   }
   $tmpl =~ s/%KUPU{"TWIKIVARS"}%/$vars/go;
-  
-  # KUPU URL
-  my $kupuurl = "$TWiki::defaultUrlHost"."kupu";
-  $tmpl =~ s/%KUPU{"URL"}%/$kupuurl/go;
   
   TWiki::writeHeaderFull ( $query, 'edit', $cgiAppType, length($tmpl) );
 

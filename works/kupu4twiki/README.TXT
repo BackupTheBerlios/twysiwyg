@@ -45,18 +45,16 @@ Install Kupu For TWiki
       - install.pl : installation script
       - bin/ : contains server-side scripts and a jar file for HTML -> TWikiML translation
       - lib/Kupu : contains library for kupu
-      - kupu/ : contains Kupu files
+      - _kupu/ : contains Kupu files
       - templates/ : contains Kupu templates (can be changed for Look&Feel)
       
 2. Run installation script with the command : perl install.pl
    NB : Under Windows, launch script from cygwin
-
-3. Modify /<twikidir>/lib/kupu.cfg to parameter kupu location.
    
-4. Modify TWiki templates to add a 'Kupu Edit' link in your pages.
+3. Modify TWiki templates to add a 'Kupu Edit' link in your pages.
    TWiki templates can be very differents, here is an example of line to add in your
    .tmpl files :
    <a href="%SCRIPTURLPATH%/kupuedit%SCRIPTSUFFIX%/%WEB%/%TOPIC%">Kupu Edit</a>
 
-5. Modify .htaccess to add authorizations for kupuedit, twiki2html and html2twiki scripts.
+4. Modify .htaccess to add authorizations for kupuedit, twiki2html and html2twiki scripts.
    

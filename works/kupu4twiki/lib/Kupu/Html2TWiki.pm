@@ -78,7 +78,10 @@ sub translate {
   $content =~ s/(<xml\s*\/>|<xml>|<\/xml>)//gi;
   # [[ => [<nop\/>[
   $content =~ s/\[\[/\[<nop\/>\[/gi;
-    
+  
+  my $host = $TWiki::defaultUrlHost;
+  $host =~ s/^(.*)\/$/$1/;
+  
   # TWiki Icons
   do "imgmap.cfg";
   my @map = split/\n/, $imgmap;
@@ -87,7 +90,7 @@ sub translate {
     # There is a particular syntax :
     if ( $icon ) {
       $icon =~ s/\/(.*)/$1/;
-      $content =~ s/<img\s+src=([\"\'])$TWiki::defaultUrlHost$icon\1[^>]*>/$syntax/gi;
+      $content =~ s/<img\s+src=([\"\'])$host\/$icon\1[^>]*>/$syntax/gi;
     }
   }
   
@@ -98,10 +101,10 @@ sub translate {
   $content =~ s/%(.+)\{(.*)\}%/%$1\{\"$2\"\}%/gi;
   # Values correction (After TWiki Initialization)
   my $pub = $TWiki::pubUrlPath;
-  $pub =~ s/\/(.*)/$1/;
+  $pub =~ s/^\/(.*)$/$1/;
   $content =~ s/(src|href)=([\'\"])($TWiki::defaultUrlHost)?\/?$pub\/$webName\/$topicName/$1\=$2%ATTACHURL%/gi;
   my $bin = $TWiki::scriptUrlPath;
-  $bin =~ s/\/(.*)/$1/;
+  $bin =~ s/^\/(.*)$/$1/;
   $content =~ s/(src|href)=([\'\"])($TWiki::defaultUrlHost)?\/?$bin\/view$TWiki::scriptSuffix\/$webName(\/|\.)(\w+)/$1\=$2$5/gi;
   $content =~ s/(src|href)=([\'\"])($TWiki::defaultUrlHost)?\/?$bin\/view$TWiki::scriptSuffix\/(\w+)(\/|\.)(\w+)/$1\=$2$4\.$6/gi;
   # Permissions

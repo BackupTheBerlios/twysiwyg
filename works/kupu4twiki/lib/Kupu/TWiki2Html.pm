@@ -33,6 +33,9 @@ sub translate {
   $content =~ s/\[([^\[\]<>]+)\]/&tlink($1, \@refs, $i++)/gei;
   $content =~ s/([>\]])\n/$1/g;
   
+  my $host = $TWiki::defaultUrlHost;
+  $host =~ s/^(.*)\/$/$1/;
+  
   # TWiki Icons
   do "imgmap.cfg";
   my @map = split/\n/, $imgmap;
@@ -41,7 +44,7 @@ sub translate {
     if ( $icon ) {
       $syntax =~ s/([\(\)\:\/\{\}\*\\\[\]\^\$])/\\$1/g;
       $icon =~ s/\/(.*)/$1/;
-      $content =~ s/$syntax/<img src=\"$TWiki::defaultUrlHost$icon\"\/>/g;
+      $content =~ s/$syntax/<img src=\"$host\/$icon\"\/>/g;
     }
   }
   

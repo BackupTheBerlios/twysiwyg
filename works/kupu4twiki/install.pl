@@ -20,6 +20,7 @@ if ($rootDir =~ /.*[^\/]$/ ){
 }
 
 my $bin = promptUser("TWiki scripts directory ?", "bin");
+my $pub = promptUser("TWiki pub directory ?", "pub");
 
 print("> Copying Kupu scripts...\n");
 
@@ -50,7 +51,7 @@ $toeval = "cp lib/varmap.cfg lib/imgmap.cfg " . $rootDir . "lib";
 
 print("> Copying Kupu files...\n");
 
-$toeval = "cp -r kupu " . $rootDir;
+$toeval = "cp -r _kupu " . $rootDir . "pub";
 `$toeval`;
 
 print("> Setting up permissions...\n");
@@ -58,13 +59,16 @@ print("> Setting up permissions...\n");
 $toeval = "chmod 755 " . $rootDir."$bin/html2twiki ".$rootDir."$bin/kupuedit ".$rootDir."$bin/kupu_attachments ".$rootDir."$bin/twiki2html ".$rootDir."$bin/htmltotwiki.jar";
 `$toeval`;
 
-$toeval = "chmod -R 755 " . $rootDir . "kupu";
+$toeval = "chmod -R 755 " . $rootDir . "/$pub/_kupu";
 `$toeval`;
 
-$toeval = "chmod 755 " . $rootDir . "lib/varmap.cfg " . $rootDir . "lib/imgmap.cfg";
+$toeval = "chmod 744 " . $rootDir . "lib/varmap.cfg " . $rootDir . "lib/imgmap.cfg";
 `$toeval`;
 
-$toeval = "chmod -R 755 " . $rootDir . "lib/Kupu";
+$toeval = "chmod 755 " . $rootDir . "lib/Kupu";
+`$toeval`;
+
+$toeval = "chmod 744 " . $rootDir . "lib/Kupu/*";
 `$toeval`;
 
 print("> Copying Kupu templates...\n");
@@ -72,7 +76,7 @@ print("> Copying Kupu templates...\n");
 $toeval = "cp templates/kupu*.tmpl " . $rootDir . "templates";
 `$toeval`;
 
-$toeval = "chmod 755 " . $rootDir . "templates/kupu*.tmpl";
+$toeval = "chmod 744 " . $rootDir . "templates/kupu*.tmpl";
 `$toeval`;
 
 print("\nIMPORTANT : Read README.TXT to complete install procedure\n\n");

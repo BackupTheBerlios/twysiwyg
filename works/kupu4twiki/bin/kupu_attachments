@@ -81,9 +81,11 @@ my ( $topic, $webName, $scriptUrlPath, $userName ) =
 
 # Attachments
 my $attachments_list = "";
+my $host = $TWiki::defaultUrlHost;
 my $pub = $TWiki::pubUrlPath;
-$pub =~ s/\///;
-my $attachurl = "$TWiki::defaultUrlHost$pub\/$webName\/$topic\/";
+$host =~ s/^(.*)\/$/$1/;
+$pub =~ s/^\/(.*)$/$1/;
+my $attachurl = "$host\/$pub\/$webName\/$topic\/";
 # Test topic existence
 if( &TWiki::Store::topicExists( $webName, $topic ) ) {
   # Obtain topic
