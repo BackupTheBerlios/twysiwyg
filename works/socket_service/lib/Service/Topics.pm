@@ -32,12 +32,9 @@ sub lockTopic {
 # return 1 if success, else 0
 sub lock {
 	my ( $key, $login, $web, $topic, $doUnlock ) = @_;
-	my $prefix = ( $doUnlock )?"Unl":"L";
-	&Service::Trace::log( "$prefix"."ocking $web.$topic attempt by $login ($key)" );
 	# Test if topic is locked
 	my ( $ok, $lockUser ) = &isUnlocked( $key, $login, $web, $topic );
 	if ( ! $ok ) {
-	 &Service::Trace::log( "$web.$topic already locked by $lockUser ($key) : failed" );
 	 return ( 0, $lockUser );
 	}
 	if ( ! $doUnlock ) {
@@ -48,7 +45,6 @@ sub lock {
 	} else {
 		&TWiki::Store::lockTopicNew( $web, $topic, 1 );
 	}
-	&Service::Trace::log( "$prefix"."ocking action OK" );
 	return 1;
 }
 
@@ -196,7 +192,7 @@ sub getChildTopics {
     # Search topics with no parents in this web
     @topicList = &grepTopics( "%META:TOPICPARENT", "$TWiki::dataDir\/$web\/*.txt", 1 );
     
-    my @topicList2 = &grepTopics( "%META:TOPICPARENT\\\{name=\\\"$TWiki::mainTopicname\\\"\\\}%", 
+    my @topicList2 = &grepTopics( "%META:TOPICPARENT\\\{name=\\\"($web\\\.)?$TWiki::mainTopicname\\\"\\\}%", 
                                  "$TWiki::dataDir\/$web\/*.txt" );
     @topicList = ( @topicList, @topicList2 );                    
   } else {

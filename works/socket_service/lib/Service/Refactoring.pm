@@ -42,11 +42,6 @@ sub renameTopic {
     &Service::Trace::log( "Rename operation failed : unable to put lock on topic $web.$topic, already put by $lockUser" );
     return ( 7, $lockUser );
   }
-  # Undo preparation
-  &Service::Undo::newStep( $key );
-  my $archive = &Service::Undo::takeSnapshot( "$web.$topic" );
-  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
-  &Service::Undo::push( $key, "$Service::rmCmd -rf $TWiki::dataDir/$web/$name* $TWiki::pubDir/$web/$name" );
   # Rename
   my $rename_code = &TWiki::Store::renameTopic( $web, $topic, $web, $name, "relink" );
   if ( $rename_code ) { &Service::Trace::log( "Rename error : $rename_code" );return ( 8, $rename_code ); }
@@ -102,18 +97,11 @@ sub moveTopic {
   if ( $srcWeb ne $dstWeb ) {
     # Error case : topic existence in destination
     if ( &TWiki::Store::topicExists( $dstWeb, $topic ) ) { &Service::Trace::log( "Move operation failed : topic $dstWeb.$topic already exists" );return 7; }
-    # Undo preparation
-  	&Service::Undo::newStep( $key );
-  	my $archive = &Service::Undo::takeSnapshot( "$srcWeb.$topic" );
-  	&Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
-  	&Service::Undo::push( $key, "$Service::rmCmd -rf $TWiki::dataDir/$dstWeb/$topic* $TWiki::pubDir/$dstWeb/$topic" );
     # Move topic
     my $move_code = &moveTopicOutsideWeb( $srcWeb, $topic, $dstWeb );
     if ( $move_code ) { &Service::Trace::log( "Move error : $move_code" );return ( 8, $move_code ); }
   }
   # Change parent
-  my $archive = &Service::Undo::takeSnapshot( "$dstWeb.$parent" );
-  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
   my $change_code = &changeParent( $dstWeb, $topic, $parent );
   if ( $change_code ) { &Service::Trace::log( "Error during parent change : $change_code" );return ( 9, $change_code ); }
   # Update links that refers to
@@ -171,13 +159,6 @@ sub updateReferences {
     }
   }
   @topics = &searchTopics( $theSearchVal, @files ) if ( @files && $#files >= 0 );
-  # Prepare undo
-  my @snap = ();
-  foreach my $topic ( @topics ) {
-  	push @snap, $topic if ( $topic ne "$newWeb.$newTopic" );
-  }
-  my $archive = &Service::Undo::takeSnapshot( @snap );
-  &Service::Undo::push( $key, "$Service::tarCmd -xpf $archive" );
   # Update
   return &updateTopics( $key, $login, $oldWeb, $oldTopic, $newWeb, $newTopic, @topics ) if ( @topics && $#topics >= 0 );
 }
@@ -592,29 +573,6 @@ sub copyAttachments {
                 $attrDate, $attrUser, $attrComment, $attrAttr, $meta2 ) if ( ! $copy_code );
   }
   return $meta2;
-}
-
-# Undo operation
-sub undo {
-  my ( $key ) = @_;
-  &Service::Trace::log( "Undo attempt by $key" );
-  # Retrieve login
-  my $login = &Service::Connection::getLogin($key);
-  if ( ! $login ) { &Service::Trace::log( "Undo operation failed : user $key not connected" );return 1; }
-  # Check administrative lock
-  my ( $checkCode, $lockedKey, $lockedTime ) = &Service::AdminLock::checkAdminLock();
-  my $date = time();
-  if ( ( ! $checkCode ) || ( ( $lockedKey ne $key ) && ( ( $date - $lockedTime ) < $Service::timeout ) ) ) {
-    &Service::Trace::log( "Undo operation failed : administrative lock control failed, not put or put by another user ($lockedKey)" );
-    return ( 2, &Service::Connection::getLogin($lockedKey) );
-  }
-  # Pop
-  my @actions = &Service::Undo::pop();
-  foreach my $action (@actions) {
-  	#`$action`;
-  	#&Service::Trace::log( "Undo operation : $action" );
-  }
-  return &Service::Undo::count();
 }
 
 1;
