@@ -263,4 +263,59 @@ sub getTopicProperties {
 	return ( 1, $topic );
 }
 
+# Copy an attachment file
+# Tests must have been done before
+# Return error code and new attachment
+sub copyAttachmentFile {
+  my ( $oldWeb, $oldTopic, $newWeb, $newTopic, $oldName, $name, $doMove ) = @_;
+  my $topicHandler = &TWiki::Store::_getTopicHandler( $oldWeb, $oldTopic, $oldName );
+  my $new = TWiki::Store::RcsFile->new( $newWeb, $newTopic, $name,
+        ( pubDir => $TWiki::pubDir ) );
+  my $oldAttachment = $topicHandler->{file};
+  my $newAttachment = $new->{file};
+  # Before save, create directories if they don't exist
+  my $tempPath = $new->_makePubWebDir();
+  unless( -e $tempPath ) {
+    umask( 0 );
+    mkdir( $tempPath, 0775 );
+  }
+  $tempPath = $new->_makeFileDir( 1 );
+  unless( -e $tempPath ) {
+    umask( 0 );
+    mkdir( $tempPath, 0775 );
+  }
+  # Copy attachment
+  if ( $doMove ) {
+    if( ! move( $oldAttachment, $newAttachment ) ) {
+        return ( 1, $new );
+    }
+  } else {
+    if( ! copy( $oldAttachment, $newAttachment ) ) {
+        return ( 1, $new );
+    }
+  }
+  # Make sure rcs directory exists
+  my $newRcsDir = $new->_makeFileDir( 1, ",v" );
+  if ( ! -e $newRcsDir ) {
+     umask( 0 );
+     mkdir( $newRcsDir, $topicHandler->{dirPermission} );
+  }
+  # Copy attachment history
+  my $oldAttachmentRcs = $topicHandler->{rcsFile};
+  my $newAttachmentRcs = $new->{rcsFile};
+  if( -e $oldAttachmentRcs ) {
+    if ( $doMove ) {
+      if( ! move( $oldAttachmentRcs, $newAttachmentRcs ) ) {
+
+        return ( 2, $new );
+      }
+    } else {
+      if( ! copy( $oldAttachmentRcs, $newAttachmentRcs ) ) {
+        return ( 2, $new );
+      }
+    }
+  }
+  return ( 0, $new );
+}
+
 1;
