@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupueditor.js,v 1.1 2004/10/10 19:13:15 romano Exp $
+// $Id: kupueditor.js,v 1.2 2004/10/30 18:21:26 romano Exp $
 
 /*****************************************************************************
  * 
@@ -20,7 +20,7 @@
  *                KupuEditor._initializeEventHandlers
  * - 2004-10-04 - completeStateHandler and completeState functions
  * - 2004-10-09 - saveDocument prototype
- * - 2004-10-09 - saveDocument source retrieving for translation   
+ * - 2004-10-24 - saveDocument source retrieving for translation   
  *  
  *****************************************************************************/
 
@@ -243,8 +243,9 @@ function KupuEditor(document, config, logger) {
           // pass the content through the filters
           this.logMessage("Starting HTML cleanup");
           var transform = this._filterContent(this.getInnerDocument().documentElement);
+          this.getInnerDocument().documentElement.getElementsByTagName("body")[0].innerHTML = transform.getElementsByTagName("body")[0].xml;
           // translation
-          contents = translatortool.translate( transform );
+          contents = translatortool.translate(this.getInnerDocument().documentElement);
         };
         /* -- End of modifications */
         

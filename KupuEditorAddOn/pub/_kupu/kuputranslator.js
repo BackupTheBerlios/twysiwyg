@@ -26,7 +26,7 @@
  * - 2004-10-09 - Comments
  * - 2004-10-09 - hasChildNodeNamed function and calls
  * - 2004-10-09 - Variables management
- * - 2004-10-09 - Permissions management  
+ * - 2004-10-24 - Permissions management  
  * - 2004-10-09 - "<BR>"s management 
  * - 2004-10-10 - HtmlToTwikiTranslatorTool.nopsProcess
  * - 2004-10-10 - Most of TWikiML to XHTML translator has been modified :
@@ -666,18 +666,14 @@ function TwikiToHtmlTranslatorTool() {
     return sText;
   };
   
-  this.getPermissionsFound = function() {
-    /* return last retrieved permissions */
-    var meta = "";
-    if (this.viewPerms != '')
-      meta += "<meta name=\"view_permissions\" content=\"" + this.viewPerms + "\">";
-    else
-      meta += "<meta name=\"view_permissions\" content=\"\">";
-    if (this.changePerms != '')
-      meta += "<meta name=\"change_permissions\" content=\"" + this.changePerms + "\">";
-    else
-      meta += "<meta name=\"change_permissions\" content=\"\">";
-    return meta;
+  this.getViewPermissions = function() {
+    /* return last retrieved view permissions */
+    return this.viewPerms;
+  };
+  
+  this.getChangePermissions = function() {
+    /* return last retrieved change permissions */
+    return this.changePerms;
   };
   
   this.translateArray = function(text) {
@@ -700,6 +696,8 @@ function TwikiToHtmlTranslatorTool() {
   
   this.permissionsProcess = function(text) {
     /* process permissions */
+    this.viewPerms = '';
+    this.changePerms = '';
     var rExp1 = new RegExp("^(\t|[ ]{3})\\\*[ ]*SETALLOWTOPICVIEW[ ]*=[ ]*(.*)");
     var rExp2 = new RegExp("^(\t|[ ]{3})\\\*[ ]*SETALLOWTOPICCHANGE[ ]*=[ ]*(.*)");
     for (var i = 0; i < text.length; i++) {
@@ -768,7 +766,7 @@ function TwikiToHtmlTranslatorTool() {
   
   this.paragraphsProcess = function(text) {
     /* process paragraphs */
-    return this.replaceProcess(text, "^[ \t]*$", "<p/>");
+    return this.replaceProcess(text, "^[ \t\x0D]*$", "<p/>");
   };
   
   this.replaceProcess = function(text, twikiTag, htmlTag) {

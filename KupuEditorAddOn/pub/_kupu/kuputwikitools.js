@@ -718,7 +718,7 @@ function TWikiLinkToolBox(divOptions, optionsHeader, divTarget, targetHeader,
       if (node.childNodes && node.childNodes.length > 0) {
         var str = "";
         for(var k = 0; k < node.childNodes.length; k++) {
-          str += this.getIENodeValue( node.childNodes[k], depth + 1 );
+          str += this.getIENodeValue(node.childNodes[k], depth + 1);
         };
         return str;
       };
@@ -789,9 +789,9 @@ function TWikiLinkToolBox(divOptions, optionsHeader, divTarget, targetHeader,
     };
     // no Enter code becauseof EOL difficulties
     var sepCodes = new Array(32, 160, 125, 93, 59, 58, 44, 41);
-    if (this.doComplete && (( keyCode >= 48 && keyCode <= 57 ) || 
-                            ( keyCode >= 97 && keyCode <= 122 ) || 
-                            ( keyCode >= 65 && keyCode <= 90 ))) {
+    if (this.doComplete && ((keyCode >= 48 && keyCode <= 57) || 
+                            (keyCode >= 97 && keyCode <= 122) || 
+                            (keyCode >= 65 && keyCode <= 90))) {
       // complete if alphanum char code
       this.completeWikiWord(selNode);
     } else if (this.doCatch && sepCodes.contains(nodeValue.charCodeAt(caretIndex))) {

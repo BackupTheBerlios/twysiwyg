@@ -1,4 +1,4 @@
----+ <nop>%TOPIC% version 1.0b4
+---+ <nop>%TOPIC% version 1.0b4.1
 
 Previously, we worked on Codev.TwysiwygEditor. This was an original approach of WYSIWYG editor integration based on Java Web Start and Web services. Unfortunately, despite Java Doc says " _The purpose of HTMLDocument model is to support both browsing and editing_ ", HTML Java API (1.4) was so buggy that we work now on a solution based on Kupu (http://kupu.oscom.org).
 
@@ -123,7 +123,7 @@ CVS : [[http://developer.berlios.de/projects/twysiwyg][Berlios]]
      |==templates/kupuedit.pattern.tmpl==| Pattern skin template |
      |==templates/kupuedit.tmpl==| Classic skin template |
 
----++ Perl installation procedure
+	* Perl installation procedure
 	
 <verbatim>
 cd <TWIKI_ROOT_DIR>
@@ -132,7 +132,7 @@ perl KupuEditorAddOn_installer.pl install
 
 It will automatically set up permissions.
 
----++ Perl scripts' shebang
+	* Perl scripts' shebang
 
 If Perl is not located in /usr/bin/perl or if you use !ActivePerl for Windows for example,
 you must modify =bin= scripts shebangs. Here are the concerned scripts :
@@ -144,24 +144,39 @@ bin/kupu_twiki2html
 bin/kupuedit
 </verbatim>
 
----++ htaccess management
+	* htaccess management
 	
-Modify .htaccess to add authorizations for =kupuedit=, =kupu_attachments=, =kupu_twiki2html= and =kupu_html2twiki= scripts.
+=.htaccess= is used by Apache to control access to scripts. If you enabled it, you will need to add KupuEditorAddOn scripts (=kupuedit=, =kupu_attachments=, =kupu_twiki2html= and =kupu_html2twiki=).
+<verbatim>
+<Files "kupuedit">
+       require valid-user
+</Files>
+<Files "kupu_twiki2html">
+       require valid-user
+</Files>
+<Files "kupu_html2twiki">
+       require valid-user
+</Files>
+<Files "kupu_attachments">
+       require valid-user
+</Files>
+</verbatim>
+If you enabled htdigest password support, add these scripts to <nop>AuthDigestDomain scripts list.
 
----++ Charset
+	* Charset
 
 If you want to use a charset different than ISO-8859-1 'latin1' or UTF-8, you must have Perl 5.8 installed
 or you have to install =Unicode::MapUTF8=.
 
----++ Modifying 'viewing' TWiki template
-	
-Modify TWiki templates to add a 'Kupu Edit' link in your pages.
-TWiki templates can be very differents, here is an example of line to add in your .tmpl files :
+	* Modifying view TWiki template
+   
+Modify =view.tmpl= TWiki template to add a 'Kupu Edit' link in your pages (or view.SKIN.tmpl, SKIN meaning your current skin).
+Here is an example of line to add in your template file :
 <verbatim>
 <a href="%SCRIPTURLPATH%/kupuedit%SCRIPTSUFFIX%/%WEB%/%TOPIC%">Kupu Edit</a>
 </verbatim>
 
----++ Uninstalling
+---+ Uninstalling
 
 <verbatim>
 cd <TWIKI_ROOT_DIR>
@@ -228,6 +243,7 @@ Some elements are not translated yet. Code styled texts, "nops", verbatim blocks
 |  Add-on Author: | TWiki:Main.DamienMandrioli & TWiki:Main.RomainRaugi |
 |  Add-on Version: | 07 Oct 2004 (v1.000) |
 |  Change History: | &nbsp; |
+|  24 Oct 2004: | 1.0b4.1 version (some fixes for IE) |
 |  10 Oct 2004: | 1.0b4 version |
 |  09 Sep 2004: | Initial version |
 |  CPAN Dependencies: | ??? |

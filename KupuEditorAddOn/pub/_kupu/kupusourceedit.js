@@ -8,7 +8,7 @@
  *
  *****************************************************************************/
 
-// $Id: kupusourceedit.js,v 1.1 2004/10/10 19:13:20 romano Exp $
+// $Id: kupusourceedit.js,v 1.2 2004/10/30 18:22:12 romano Exp $
 
 /*****************************************************************************
  * 
@@ -16,7 +16,7 @@
  * Copyright (C) 2004 Damien Mandrioli and Romain Raugi
  *  
  * Modifications done for TWiki KupuEditorAddOn :
- * - 2004-10-04 - Source save ability
+ * - 2004-10-24 - Source save ability
  * - 2004-10-09 - Translation in both directions 
  * - 2004-10-09 - SourceEditTool prototype 
  *  
@@ -60,9 +60,6 @@ function SourceEditTool(sourcebuttonid, sourceareaid, htmltotwikitranslator, twi
             var data = this.htmltotwikitranslator.translate(kupu.getInnerDocument().documentElement);
             var headNode = kupu.getInnerDocument().documentElement.getElementsByTagName("head")[0];
             var metaTags = kupu.getInnerDocument().documentElement.getElementsByTagName("meta");
-            // remove permissions nodes
-            headNode.removeChild(metaTags.namedItem('view_permissions'));
-            headNode.removeChild(metaTags.namedItem('change_permissions'));
             /* -- End of modifications */
             sourcearea.value = data;
             editorframe.style.display = 'none';
@@ -71,8 +68,10 @@ function SourceEditTool(sourcebuttonid, sourceareaid, htmltotwikitranslator, twi
             var data = sourcearea.value;
             /* TWiki KupuEditorAddOn : TWiki translation */
             //kupu.getInnerDocument().documentElement.getElementsByTagName('body')[0].innerHTML = data;
+            var metaTags = kupu.getInnerDocument().documentElement.getElementsByTagName("meta");
             kupu.getInnerDocument().documentElement.getElementsByTagName('body')[0].innerHTML = this.twikitohtmltranslator.translate(data);
-            kupu.getInnerDocument().documentElement.getElementsByTagName('head')[0].innerHTML += this.twikitohtmltranslator.getPermissionsFound();
+            metaTags.namedItem('view_permissions').setAttribute('content', this.twikitohtmltranslator.getViewPermissions());
+            metaTags.namedItem('change_permissions').setAttribute('content', this.twikitohtmltranslator.getChangePermissions());
             /* -- End of modifications */
             sourcearea.style.display = 'none';
             editorframe.style.display = 'block';
