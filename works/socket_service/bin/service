@@ -6,7 +6,6 @@ BEGIN {
 
 use strict;
 use Service;
-use TWiki;
 use CGI::Carp qw( fatalsToBrowser );
 use CGI;
 
@@ -19,12 +18,9 @@ my $length = 0;
 
 if ( $call ne "" ) {
 	
-	# TWiki init
-	&TWiki::basicInitialize();
-	
 	# Service invokation test & dispatch
 	my $content_type = "text/xml";
-	$response = "<?xml version=\"1.0\" encoding=\"$TWiki::siteCharset\"?>";
+	$response = "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>";
 	
 	if ( $call eq "connect" ) {
 		# Connection service
