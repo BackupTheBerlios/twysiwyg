@@ -42,6 +42,12 @@ use TWiki::Contrib::Build;
     chdir("$basedir") || die "can't cd to $basedir - $!";
     print `find . -type f | grep -v CVS | egrep -v '~\$' | egrep "([kK]upu|LICENSE*)" > $basedir/MANIFEST`;
   }
+  
+  sub filter {
+    my $this = shift;
+    my ( $from, $to ) = @_;
+    return $this->SUPER::filter( $from, $to ) if ( $from =~ m/[a-zA-Z0-9_]+\.pl/ || $from =~ m/KupuEditorAddOn\.txt/ );
+  }
 
 }
 
