@@ -187,7 +187,7 @@ if ( $call ne "" ) {
 	                                                            $topicTarget, 
 	                                                            $webFrom, 
 	                                                            $topicFrom, 
-	                                                            $query->param('$doAttachments'), 
+	                                                            $query->param('doAttachments'), 
 	                                                            $query->param('doBreakLock'), 
 	                                                            $query->param('doRemove'), 
 	                                                            $query->param('dontNotify') );
@@ -216,7 +216,7 @@ if ( $call ne "" ) {
                                                             $dstWeb, 
                                                             $newName, 
                                                             $parent, 
-                                                            $query->param('$doAttachments'), 
+                                                            $query->param('doAttachments'), 
                                                             $query->param('doBreakLock') );
 
 		if ( $code == 0 ) { $response .= &_make_message( $code, "Copy operation succeeded: $info" ); }
